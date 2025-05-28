@@ -1,8 +1,13 @@
 package com.example.kursovayatesty;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.io.File;
@@ -42,10 +47,10 @@ public class TestListActivity extends AppCompatActivity {
             }
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, fileNames);
+        TestListAdapter adapter = new TestListAdapter(fileNames);
         testsListView.setAdapter(adapter);
     }
+
 
     private void setupBottomNav() {
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
@@ -81,4 +86,65 @@ public class TestListActivity extends AppCompatActivity {
             return true;
         });
     }
+
+    private class TestListAdapter extends BaseAdapter {
+        private final List<String> items;
+
+        TestListAdapter(List<String> items) {
+            this.items = items;
+        }
+
+        @Override
+        public int getCount() {
+            return items.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return items.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.O)
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = getLayoutInflater().inflate(R.layout.test_list_item, parent, false);
+            }
+
+            TextView fileNameView = convertView.findViewById(R.id.testFileName);
+            ImageButton logButton = convertView.findViewById(R.id.logButton);
+
+            String fileName = items.get(position);
+            fileNameView.setText(fileName);
+
+            // Переход при клике по имени
+            convertView.setOnClickListener(v -> {
+                Intent intent = new Intent(TestListActivity.this, TakeTestActivity.class);
+                intent.putExtra("test_file_name", fileName);
+                startActivity(intent);
+            });
+
+            // Лог содержимого
+            logButton.setOnClickListener(v -> {
+                File file = new File(testsFolder, fileName);
+                if (file.exists()) {
+                    try {
+                        String content = new String(java.nio.file.Files.readAllBytes(file.toPath()));
+                        android.util.Log.d("TEST_CONTENT", "Файл " + fileName + ":\n" + content);
+                    } catch (Exception e) {
+                        android.util.Log.e("TEST_CONTENT", "Ошибка чтения файла " + fileName, e);
+                    }
+                }
+            });
+
+            return convertView;
+        }
+    }
+
 }
+

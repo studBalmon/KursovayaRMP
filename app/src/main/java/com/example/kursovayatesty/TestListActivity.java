@@ -135,12 +135,15 @@ public class TestListActivity extends AppCompatActivity {
                 if (file.exists()) {
                     try {
                         String content = new String(java.nio.file.Files.readAllBytes(file.toPath()));
-                        android.util.Log.d("TEST_CONTENT", "Файл " + fileName + ":\n" + content);
+                        Intent intent = new Intent(TestListActivity.this, ShowQrActivity.class);
+                        intent.putExtra("qr_content", content);
+                        startActivity(intent);
                     } catch (Exception e) {
-                        android.util.Log.e("TEST_CONTENT", "Ошибка чтения файла " + fileName, e);
+                        android.util.Log.e("QR_ERROR", "Ошибка чтения файла", e);
                     }
                 }
             });
+
 
             return convertView;
         }

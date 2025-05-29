@@ -34,7 +34,7 @@ public class MenuActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.buttonSettings).setOnClickListener(v -> {
-            Toast.makeText(this, "Настройки пока не реализованы", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, SettingsActivity.class));
         });
     }
 }

@@ -6,6 +6,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,8 +19,6 @@ public class ScanActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Запускаем сканер сразу
         new IntentIntegrator(this)
                 .setPrompt("Отсканируйте QR-код теста")
                 .setBeepEnabled(true)
@@ -40,39 +42,34 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     private void saveTestToFile(String content) {
-        // Проверяем, что текст содержит хотя бы один %% — иначе это не тест
-        if (!content.contains("%%")) {
-            Toast.makeText(this, "Ошибка: это не тест (отсутствует %% в тексте)", Toast.LENGTH_LONG).show();
-            return;
-        }
+        try {
+            // Проверим, что content — это JSON и содержит поле "title"
+            JSONObject jsonObject = new JSONObject(content);
 
-        File testsFolder = new File(getFilesDir(), "Tests");
-        if (!testsFolder.exists()) testsFolder.mkdirs();
+            String fileName = jsonObject.optString("title", "test_" + System.currentTimeMillis());
+            fileName = fileName.trim().replaceAll("[\\\\/:*?\"<>|]", "_");
 
-        // Название теста — всё до первого %%
-        String fileName;
-        int separatorIndex = content.indexOf("%%");
-        if (separatorIndex != -1) {
-            fileName = content.substring(0, separatorIndex).trim();
-        } else {
-            fileName = "test_" + System.currentTimeMillis();
-        }
+            File testsFolder = new File(getFilesDir(), "Tests");
+            if (!testsFolder.exists()) testsFolder.mkdirs();
 
-        // Заменим запрещённые символы в имени файла
-        fileName = fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
+            File testFile = new File(testsFolder, fileName + ".json");
 
-        File testFile = new File(testsFolder, fileName + ".txt");
+            try (FileOutputStream fos = new FileOutputStream(testFile)) {
+                fos.write(content.getBytes());
+                Toast.makeText(this, "Файл сохранён: " + fileName + ".json", Toast.LENGTH_LONG).show();
+            } catch (IOException e) {
+                Toast.makeText(this, "Ошибка сохранения файла", Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+            }
 
-        try (FileOutputStream fos = new FileOutputStream(testFile)) {
-            fos.write(content.getBytes());
-            Toast.makeText(this, "Файл сохранён: " + fileName + ".txt", Toast.LENGTH_LONG).show();
-        } catch (IOException e) {
-            Toast.makeText(this, "Ошибка сохранения файла", Toast.LENGTH_SHORT).show();
+        } catch (JSONException e) {
+            Toast.makeText(this, "Ошибка: это невалидный JSON-тест", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
 
         finish(); // Закрыть ScanActivity
     }
+
 
 
 }

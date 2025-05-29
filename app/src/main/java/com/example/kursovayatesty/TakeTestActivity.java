@@ -1,6 +1,8 @@
 package com.example.kursovayatesty;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,22 +20,35 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class TakeTestActivity extends AppCompatActivity {
 
-    private LinearLayout questionsLayout;
-    private Button submitButton;
-    private List<Question> questions = new ArrayList<>();
+    private LinearLayout questionsLayout; // Контейнер для вопросов (вёрстка)
+    private Button submitButton;          // Кнопка отправки/проверки ответов
+    private List<Question> questions = new ArrayList<>(); // Список вопросов теста
 
+    /**
+     * Метод жизненного цикла активности.
+     * Загружает настройки языка и темы,
+     * затем инициализирует интерфейс,
+     * загружает тест из JSON (переданный через Intent) или из файла,
+     * устанавливает обработчик кнопки отправки и навигации.
+     *
+     * @param savedInstanceState сохранённое состояние (не используется)
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        applyLanguage();
+        applySelectedTheme();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_take_test);
 
         questionsLayout = findViewById(R.id.questionsLayout);
         submitButton = findViewById(R.id.submitButton);
 
+        // Проверяем источник теста: JSON из облака или имя файла
         if (getIntent().hasExtra("test_content")) {
             String json = getIntent().getStringExtra("test_content");
             Log.d("TakeTestActivity", "Loaded test from cloud/json: " + json);
@@ -47,10 +62,18 @@ public class TakeTestActivity extends AppCompatActivity {
             return;
         }
 
+        // Обработка нажатия кнопки "Отправить"
         submitButton.setOnClickListener(v -> checkAnswers());
+
         setupBottomNav();
     }
 
+    /**
+     * Загружает тест из файла по имени.
+     * Читает весь файл как строку, затем парсит JSON.
+     *
+     * @param fileName имя файла с тестом в папке "Tests"
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void loadTestFromFile(String fileName) {
         try {
@@ -63,6 +86,13 @@ public class TakeTestActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Загружает тест из JSON-строки.
+     * Парсит JSON с помощью Gson в объект Test,
+     * сохраняет список вопросов и отображает их.
+     *
+     * @param json строка с JSON-тестом
+     */
     private void loadTestFromJson(String json) {
         try {
             Gson gson = new Gson();
@@ -75,6 +105,11 @@ public class TakeTestActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Отображает вопросы на экране.
+     * Для каждого вопроса создаёт отдельный View с текстом вопроса и вариантами ответов (RadioButton).
+     * Добавляет слушатель выбора варианта, чтобы записать ответ пользователя в модель вопроса.
+     */
     private void displayQuestions() {
         LayoutInflater inflater = LayoutInflater.from(this);
         questionsLayout.removeAllViews();
@@ -88,6 +123,7 @@ public class TakeTestActivity extends AppCompatActivity {
 
             questionText.setText((i + 1) + ". " + q.getText());
 
+            // Добавляем варианты ответов в RadioGroup
             for (int j = 0; j < q.getOptions().size(); j++) {
                 RadioButton rb = new RadioButton(this);
                 rb.setText(q.getOptions().get(j));
@@ -96,6 +132,7 @@ public class TakeTestActivity extends AppCompatActivity {
             }
 
             int finalI = i;
+            // При выборе варианта ответа обновляем поле selectedAnswerIndex в вопросе
             radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
                 questions.get(finalI).setSelectedAnswerIndex(checkedId);
             });
@@ -104,6 +141,12 @@ public class TakeTestActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Проверяет ответы пользователя.
+     * Подсчитывает количество правильных ответов и отсутствующих (не выбранных).
+     * Если есть вопросы без ответов — выводит предупреждение.
+     * Иначе показывает количество правильных ответов.
+     */
     private void checkAnswers() {
         int correct = 0;
         int unanswered = 0;
@@ -124,6 +167,10 @@ public class TakeTestActivity extends AppCompatActivity {
         Toast.makeText(this, "Правильных: " + correct + " из " + questions.size(), Toast.LENGTH_LONG).show();
     }
 
+    /**
+     * Настраивает нижнюю навигационную панель.
+     * Обрабатывает выбор пунктов меню и переключает активности.
+     */
     private void setupBottomNav() {
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
         nav.setSelectedItemId(R.id.nav_test);
@@ -144,6 +191,45 @@ public class TakeTestActivity extends AppCompatActivity {
             return true;
         });
     }
+
+    /**
+     * Применяет выбранную в настройках тему.
+     * Считывает из SharedPreferences и вызывает setTheme.
+     */
+    private void applySelectedTheme() {
+        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
+        String theme = prefs.getString("theme", "Light");
+
+        switch (theme) {
+            case "Light":
+                setTheme(R.style.Theme_KursovayaTesty_Light);
+                break;
+            case "Dark":
+                setTheme(R.style.Theme_KursovayaTesty_Dark);
+                break;
+            case "Special":
+                setTheme(R.style.Theme_KursovayaTesty_Special);
+                break;
+        }
+    }
+
+    /**
+     * Применяет выбранный язык интерфейса.
+     * Считывает язык из SharedPreferences и меняет Locale приложения.
+     */
+    private void applyLanguage() {
+        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
+        String language = prefs.getString("language", "English");
+
+        String localeCode = language.equals("Русский") ? "ru" : "en";
+        Locale locale = new Locale(localeCode);
+        Locale.setDefault(locale);
+
+        Configuration config = getResources().getConfiguration();
+        config.setLocale(locale);
+        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+    }
 }
+
 
 

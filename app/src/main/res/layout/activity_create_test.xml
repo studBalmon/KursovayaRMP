@@ -6,16 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Название теста -->
     <EditText
         android:id="@+id/testTitleEditText"
-        android:hint="Название теста"
+        android:hint="@string/test_label"
         android:layout_margin="12dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text"/>
 
-    <!-- Список вопросов -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -41,7 +39,7 @@
             android:id="@+id/addQuestionButton"
             android:layout_width="380dp"
             android:layout_height="wrap_content"
-            android:text="Добавить вопрос" />
+            android:text="@string/addQuestion" />
     <LinearLayout
         android:orientation="horizontal"
         android:gravity="center"
@@ -51,7 +49,7 @@
 
         <Button
             android:id="@+id/saveToCloudButton"
-            android:text="Сохранить в облако"
+            android:text="@string/saveincloud"
             android:layout_width="190dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"/>
@@ -59,7 +57,7 @@
 
         <Button
             android:id="@+id/saveTestButton"
-            android:text="Сохранить тест"
+            android:text="@string/saveOnDevice"
             android:layout_width="180dp"
             android:layout_height="wrap_content"/>
     </LinearLayout>

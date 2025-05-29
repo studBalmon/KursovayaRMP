@@ -18,7 +18,7 @@
         android:id="@+id/logButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_menu_view"
+        android:src="@android:drawable/ic_menu_share"
         android:contentDescription="Показать QR"
         android:background="?attr/selectableItemBackgroundBorderless" />
 

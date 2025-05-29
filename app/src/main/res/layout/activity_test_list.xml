@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Список тестов"
+        android:text="@string/testList"
         android:textSize="20sp"
         android:padding="16dp"
         android:textStyle="bold"/>
@@ -25,7 +25,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Облачные тесты"
+        android:text="@string/cloudTests"
         android:textSize="18sp"
         android:padding="16dp"
         android:textStyle="bold"/>

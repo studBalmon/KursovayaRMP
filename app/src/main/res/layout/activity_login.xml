@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:text="Авторизация"
+            android:text="@string/authorizacion"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -32,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Пароль"
+            android:hint="@string/password"
             android:inputType="textPassword" />
 
         <Button
@@ -40,14 +40,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Войти" />
+            android:text="@string/loginIn" />
 
         <Button
             android:id="@+id/registerButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Регистрация" />
+            android:text="@string/register" />
     </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

@@ -1,9 +1,38 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.KursovayaTesty" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+    <!-- Базовая тема -->
+    <style name="Base.Theme.KursovayaTesty" parent="Theme.Material3.DayNight.NoActionBar"
+        />
+
+
+
+    <!-- Светлая тема -->
+    <style name="Theme.KursovayaTesty.Light" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">#6CA5C7</item>
+        <item name="colorSecondary">@color/black</item>
+        <item name="android:windowBackground">#FFFFFF</item>
     </style>
 
-    <style name="Theme.KursovayaTesty" parent="Base.Theme.KursovayaTesty" />
+    <!-- Тёмная тема -->
+    <style name="Theme.KursovayaTesty.Dark" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/black</item>
+        <item name="colorSecondary">@color/white</item>
+        <item name="android:windowBackground">#121212</item>
+    </style>
+
+    <!-- Специальная тема -->
+    <style name="Theme.KursovayaTesty.Special" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF4081</item>
+        <item name="colorSecondary">#303F9F</item>
+        <item name="android:windowBackground">#FDEFF9</item>
+        <item name="android:textColorPrimary">#000000</item>
+    </style>
+
+    <!-- Обычная тема, если нужна -->
+    <style name="Theme.KursovayaTesty" parent="Base.Theme.KursovayaTesty">
+        <item name="android:windowSplashScreenBackground" tools:targetApi="31">#FFFFFF</item> <!-- или цвет твоего фона -->
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">@null</item>
+        <item name="android:windowSplashScreenAnimationDuration" tools:targetApi="31">0</item>
+    </style>
+
 </resources>

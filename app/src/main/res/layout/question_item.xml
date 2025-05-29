@@ -4,37 +4,35 @@
     android:padding="8dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#EEEEEE"
     android:layout_margin="8dp">
 
     <EditText
         android:id="@+id/questionEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Вопрос" />
+        android:hint="@string/question" />
 
     <EditText
         android:id="@+id/answer1EditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Вариант 1" />
+        android:hint="@string/option1" />
     <EditText
         android:id="@+id/answer2EditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Вариант 2" />
+        android:hint="@string/option2" />
     <EditText
         android:id="@+id/answer3EditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Вариант 3" />
+        android:hint="@string/option3" />
     <EditText
         android:id="@+id/answer4EditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Вариант 4" />
+        android:hint="@string/option4" />
 
-    <!-- Кнопки выбора правильного ответа -->
     <RadioGroup
         android:id="@+id/radioGroup"
         android:layout_width="match_parent"

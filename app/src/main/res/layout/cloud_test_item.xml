@@ -7,28 +7,18 @@
     android:gravity="center_vertical">
 
     <TextView
-        android:id="@+id/testFileName"
+        android:id="@+id/cloudTestTitle"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:text="Имя файла"
+        android:text="Название теста"
         android:textSize="18sp" />
 
     <ImageButton
-        android:id="@+id/logButton"
+        android:id="@+id/cloudShareQrButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_menu_view"
+        android:src="@android:drawable/ic_menu_share"
         android:contentDescription="Показать QR"
         android:background="?attr/selectableItemBackgroundBorderless" />
-
-    <ImageButton
-        android:id="@+id/deleteButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_menu_delete"
-        android:contentDescription="Удалить"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:tint="@android:color/holo_red_dark" />
 </LinearLayout>
-

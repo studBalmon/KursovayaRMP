@@ -32,24 +32,37 @@
 
     <!-- Кнопки управления -->
     <LinearLayout
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="3dp">
+        <Button
+            android:id="@+id/addQuestionButton"
+            android:layout_width="380dp"
+            android:layout_height="wrap_content"
+            android:text="Добавить вопрос" />
+    <LinearLayout
         android:orientation="horizontal"
         android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:padding="3dp">
 
         <Button
-            android:id="@+id/addQuestionButton"
-            android:text="Добавить вопрос"
-            android:layout_width="wrap_content"
+            android:id="@+id/saveToCloudButton"
+            android:text="Сохранить в облако"
+            android:layout_width="190dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"/>
+
 
         <Button
             android:id="@+id/saveTestButton"
             android:text="Сохранить тест"
-            android:layout_width="wrap_content"
+            android:layout_width="180dp"
             android:layout_height="wrap_content"/>
+    </LinearLayout>
     </LinearLayout>
 
     <!-- Bottom Navigation Bar -->

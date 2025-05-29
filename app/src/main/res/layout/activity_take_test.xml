@@ -1,15 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <ListView
-        android:id="@+id/testListView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:visibility="gone" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -17,23 +11,23 @@
         android:layout_weight="1">
 
         <LinearLayout
-            android:id="@+id/questionsContainer"
+            android:id="@+id/questionsLayout"
             android:orientation="vertical"
+            android:padding="16dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
+            android:layout_height="wrap_content" />
     </ScrollView>
 
     <Button
-        android:id="@+id/checkAnswersButton"
+        android:id="@+id/submitButton"
+        android:text="Проверить"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Проверить ответы"
-        android:visibility="gone" />
+        android:layout_margin="12dp" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"/>
 </LinearLayout>

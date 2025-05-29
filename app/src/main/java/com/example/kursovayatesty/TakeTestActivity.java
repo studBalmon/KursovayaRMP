@@ -3,30 +3,27 @@ package com.example.kursovayatesty;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.gson.Gson;
+
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.nio.file.Files;
 
 public class TakeTestActivity extends AppCompatActivity {
 
-    private LinearLayout questionsContainer;
-    private Button checkAnswersButton;
+    private LinearLayout questionsLayout;
+    private Button submitButton;
     private List<Question> questions = new ArrayList<>();
-
-    private class Question {
-        String questionText;
-        String[] options = new String[4];
-        int correctAnswerIndex;
-        int selectedAnswerIndex = -1;
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -34,94 +31,88 @@ public class TakeTestActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_take_test);
 
-        questionsContainer = findViewById(R.id.questionsContainer);
-        checkAnswersButton = findViewById(R.id.checkAnswersButton);
+        questionsLayout = findViewById(R.id.questionsLayout);
+        submitButton = findViewById(R.id.submitButton);
 
-        String fileName = getIntent().getStringExtra("test_file_name");
-        if (fileName == null) {
-            Toast.makeText(this, "Ошибка: не указан файл теста", Toast.LENGTH_SHORT).show();
+        if (getIntent().hasExtra("test_content")) {
+            String json = getIntent().getStringExtra("test_content");
+            Log.d("TakeTestActivity", "Loaded test from cloud/json: " + json);
+            loadTestFromJson(json);
+        } else if (getIntent().hasExtra("test_file_name")) {
+            String fileName = getIntent().getStringExtra("test_file_name");
+            loadTestFromFile(fileName);
+        } else {
+            Toast.makeText(this, "Источник теста не найден", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        loadTestFromFile(fileName);
-        displayQuestions();
-
-        checkAnswersButton.setOnClickListener(v -> checkAnswers());
-
+        submitButton.setOnClickListener(v -> checkAnswers());
         setupBottomNav();
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void loadTestFromFile(String fileName) {
-        File testsFolder = new File(getFilesDir(), "Tests");
-        File testFile = new File(testsFolder, fileName);
-
         try {
-            String content = new String(Files.readAllBytes(testFile.toPath()));
-            // Формат: title%%question%%option1%%option2%%option3%%option4%%correctIndex%%question%%...
-            String[] parts = content.split("%%");
-            // Первый элемент - название теста, пропустим
-            int pos = 1;
-
-            while (pos + 6 < parts.length) {
-                Question q = new Question();
-                q.questionText = parts[pos++];
-                for (int i = 0; i < 4; i++) {
-                    q.options[i] = parts[pos++];
-                }
-                q.correctAnswerIndex = Integer.parseInt(parts[pos++]);
-                questions.add(q);
-            }
+            File file = new File(getFilesDir(), "Tests/" + fileName);
+            String content = new String(Files.readAllBytes(file.toPath()));
+            loadTestFromJson(content);
         } catch (Exception e) {
-            Toast.makeText(this, "Ошибка чтения теста", Toast.LENGTH_SHORT).show();
-            finish();
+            Toast.makeText(this, "Ошибка загрузки файла", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    private void loadTestFromJson(String json) {
+        try {
+            Gson gson = new Gson();
+            Test test = gson.fromJson(json, Test.class);
+            this.questions = test.getQuestions();
+            displayQuestions();
+        } catch (Exception e) {
+            Toast.makeText(this, "Ошибка разбора теста", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
         }
     }
 
     private void displayQuestions() {
-        LayoutInflater inflater = getLayoutInflater();
+        LayoutInflater inflater = LayoutInflater.from(this);
+        questionsLayout.removeAllViews();
 
         for (int i = 0; i < questions.size(); i++) {
             Question q = questions.get(i);
-            View questionView = inflater.inflate(R.layout.question_item_take_test, null);
+            View view = inflater.inflate(R.layout.item_question_take, null);
 
-            TextView questionTextView = questionView.findViewById(R.id.questionTextView);
-            RadioGroup radioGroup = questionView.findViewById(R.id.radioGroupAnswers);
+            TextView questionText = view.findViewById(R.id.questionText);
+            RadioGroup radioGroup = view.findViewById(R.id.answersGroup);
 
-            questionTextView.setText((i + 1) + ". " + q.questionText);
+            questionText.setText((i + 1) + ". " + q.getText());
 
-            for (int j = 0; j < 4; j++) {
+            for (int j = 0; j < q.getOptions().size(); j++) {
                 RadioButton rb = new RadioButton(this);
-                rb.setText(q.options[j]);
+                rb.setText(q.getOptions().get(j));
                 rb.setId(j);
                 radioGroup.addView(rb);
             }
 
             int finalI = i;
             radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-                questions.get(finalI).selectedAnswerIndex = checkedId;
+                questions.get(finalI).setSelectedAnswerIndex(checkedId);
             });
 
-            questionsContainer.addView(questionView);
+            questionsLayout.addView(view);
         }
-
-        // Показать контейнер и кнопку после добавления вопросов
-        questionsContainer.setVisibility(View.VISIBLE);
-        checkAnswersButton.setVisibility(View.VISIBLE);
     }
 
-
     private void checkAnswers() {
-        int correctCount = 0;
+        int correct = 0;
         int unanswered = 0;
 
         for (Question q : questions) {
-            if (q.selectedAnswerIndex == -1) {
+            if (q.getSelectedAnswerIndex() == -1) {
                 unanswered++;
-            } else if (q.selectedAnswerIndex == q.correctAnswerIndex) {
-                correctCount++;
+            } else if (q.getSelectedAnswerIndex() == q.getCorrectIndex()) {
+                correct++;
             }
         }
 
@@ -130,9 +121,7 @@ public class TakeTestActivity extends AppCompatActivity {
             return;
         }
 
-        Toast.makeText(this,
-                "Результат: " + correctCount + " из " + questions.size(),
-                Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Правильных: " + correct + " из " + questions.size(), Toast.LENGTH_LONG).show();
     }
 
     private void setupBottomNav() {
@@ -142,32 +131,19 @@ public class TakeTestActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.nav_test) {
                 startActivity(new Intent(this, TestListActivity.class));
-                finish();
-                return true;
-            }
-            if (id == R.id.nav_create) {
+            } else if (id == R.id.nav_create) {
                 startActivity(new Intent(this, CreateTestActivity.class));
-                finish();
-                return true;
-            }
-            if (id == R.id.nav_menu) {
+            } else if (id == R.id.nav_menu) {
                 startActivity(new Intent(this, MenuActivity.class));
-                finish();
-                return true;
-            }
-            if (id == R.id.nav_scan) {
+            } else if (id == R.id.nav_scan) {
                 startActivity(new Intent(this, ScanActivity.class));
-                finish();
-                return true;
-            }
-            if (id == R.id.nav_settings) {
+            } else if (id == R.id.nav_settings) {
                 startActivity(new Intent(this, SettingsActivity.class));
-                finish();
-                return true;
             }
-            Toast.makeText(this, "платформа 9 3/4", Toast.LENGTH_SHORT).show();
+            finish();
             return true;
         });
     }
-
 }
+
+

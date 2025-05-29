@@ -25,8 +25,12 @@ public class MenuActivity extends AppCompatActivity {
             startActivity(new Intent(this, TestListActivity.class));
         });
 
+        findViewById(R.id.authMenu).setOnClickListener(v -> {
+            startActivity(new Intent(this, LoginActivity.class));
+        });
+
         findViewById(R.id.buttonScan).setOnClickListener(v -> {
-            Toast.makeText(this, "Скан пока не реализован", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, ScanActivity.class));
         });
 
         findViewById(R.id.buttonSettings).setOnClickListener(v -> {

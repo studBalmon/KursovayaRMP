@@ -13,7 +13,7 @@
         android:layout_height="200dp"
         android:src="@android:drawable/ic_menu_gallery"
         android:contentDescription="Меню"
-        android:layout_marginBottom="24dp" />
+        android:layout_marginBottom="100dp" />
 
     <Button
         android:id="@+id/buttonCreate"
@@ -52,6 +52,13 @@
         android:id="@+id/buttonSettings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Настройки" />
+        android:text="Настройки"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/authMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Аутентификация" />
 
 </LinearLayout>

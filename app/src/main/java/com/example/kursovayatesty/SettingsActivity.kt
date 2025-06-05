@@ -1,30 +1,21 @@
-package com.example.kursovayatesty;
+package com.example.kursovayatesty
 
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.os.Bundle;
+import android.content.Intent
+import android.os.Bundle
+import android.view.MenuItem
+import android.view.View
+import android.widget.Button
+import android.widget.RadioGroup
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.util.Locale
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.SharedPreferences;
-import android.widget.Button;
-import android.widget.RadioGroup;
-import android.widget.Toast;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import java.util.Locale;
-
-public class SettingsActivity extends AppCompatActivity {
-
-    // Константы для ключей настроек
-    private static final String PREFS_NAME = "app_settings";
-    private static final String KEY_LANGUAGE = "language";
-    private static final String KEY_THEME = "theme";
-
+class SettingsActivity : AppCompatActivity() {
     // Элементы интерфейса
-    private RadioGroup languageRadioGroup, themeRadioGroup;
-    private Button saveButton;
+    private var languageRadioGroup: RadioGroup? = null
+    private var themeRadioGroup: RadioGroup? = null
+    private var saveButton: Button? = null
 
     /**
      * Метод жизненного цикла, вызывается при создании активности.
@@ -32,56 +23,50 @@ public class SettingsActivity extends AppCompatActivity {
      *
      * @param savedInstanceState Состояние активности (не используется)
      */
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        applyLanguage();          // Установка языка интерфейса
-        applySelectedTheme();     // Установка темы оформления
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings); // Установка макета
+    override fun onCreate(savedInstanceState: Bundle?) {
+        applyLanguage() // Установка языка интерфейса
+        applySelectedTheme() // Установка темы оформления
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_settings) // Установка макета
 
         // Поиск элементов интерфейса
-        languageRadioGroup = findViewById(R.id.languageRadioGroup);
-        themeRadioGroup = findViewById(R.id.themeRadioGroup);
-        saveButton = findViewById(R.id.saveSettingsButton);
+        languageRadioGroup = findViewById(R.id.languageRadioGroup)
+        themeRadioGroup = findViewById(R.id.themeRadioGroup)
+        saveButton = findViewById(R.id.saveSettingsButton)
 
-        setupBottomNav();  // Настройка нижнего навигационного меню
-        loadSettings();    // Загрузка сохранённых настроек в интерфейс
+        setupBottomNav() // Настройка нижнего навигационного меню
+        loadSettings() // Загрузка сохранённых настроек в интерфейс
 
         // Обработчик кнопки сохранения
-        saveButton.setOnClickListener(v -> {
-            saveSettings(); // Сохраняет настройки
-            Toast.makeText(this, "Настройки сохранены", Toast.LENGTH_SHORT).show();
-            finish(); // Закрываем активность
-        });
+        saveButton?.setOnClickListener {
+            saveSettings()
+            Toast.makeText(this, "Настройки сохранены", Toast.LENGTH_SHORT).show()
+            finish()
+        }
+
     }
 
     /**
      * Загружает сохранённые настройки из SharedPreferences
      * и отображает их в RadioGroup'ах.
      */
-    private void loadSettings() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String language = prefs.getString(KEY_LANGUAGE, "English");
-        String theme = prefs.getString(KEY_THEME, "Light");
+    private fun loadSettings() {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val language = prefs.getString(KEY_LANGUAGE, "English")!!
+        val theme = prefs.getString(KEY_THEME, "Light")!!
 
         // Отметить текущий язык
-        if (language.equals("English")) {
-            languageRadioGroup.check(R.id.rbEnglish);
-        } else if (language.equals("Русский")) {
-            languageRadioGroup.check(R.id.rbRussian);
+        if (language == "English") {
+            languageRadioGroup!!.check(R.id.rbEnglish)
+        } else if (language == "Русский") {
+            languageRadioGroup!!.check(R.id.rbRussian)
         }
 
         // Отметить текущую тему
-        switch (theme) {
-            case "Light":
-                themeRadioGroup.check(R.id.rbLight);
-                break;
-            case "Dark":
-                themeRadioGroup.check(R.id.rbDark);
-                break;
-            case "Special":
-                themeRadioGroup.check(R.id.rbSpecial);
-                break;
+        when (theme) {
+            "Light" -> themeRadioGroup!!.check(R.id.rbLight)
+            "Dark" -> themeRadioGroup!!.check(R.id.rbDark)
+            "Special" -> themeRadioGroup!!.check(R.id.rbSpecial)
         }
     }
 
@@ -89,97 +74,109 @@ public class SettingsActivity extends AppCompatActivity {
      * Сохраняет выбранные настройки языка и темы в SharedPreferences.
      * Затем перезапускает активность для применения новых настроек.
      */
-    private void saveSettings() {
-        String language = "English";
-        String theme = "Light";
+    private fun saveSettings() {
+        var language = "English"
+        var theme = "Light"
 
         // Получить выбранный язык
-        int selectedLangId = languageRadioGroup.getCheckedRadioButtonId();
+        val selectedLangId = languageRadioGroup!!.checkedRadioButtonId
         if (selectedLangId == R.id.rbEnglish) {
-            language = "English";
+            language = "English"
         } else if (selectedLangId == R.id.rbRussian) {
-            language = "Русский";
+            language = "Русский"
         }
 
         // Получить выбранную тему
-        int selectedThemeId = themeRadioGroup.getCheckedRadioButtonId();
+        val selectedThemeId = themeRadioGroup!!.checkedRadioButtonId
         if (selectedThemeId == R.id.rbLight) {
-            theme = "Light";
+            theme = "Light"
         } else if (selectedThemeId == R.id.rbDark) {
-            theme = "Dark";
+            theme = "Dark"
         } else if (selectedThemeId == R.id.rbSpecial) {
-            theme = "Special";
+            theme = "Special"
         }
 
         // Сохраняем в SharedPreferences
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(KEY_LANGUAGE, language);
-        editor.putString(KEY_THEME, theme);
-        editor.apply();
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val editor = prefs.edit()
+        editor.putString(KEY_LANGUAGE, language)
+        editor.putString(KEY_THEME, theme)
+        editor.apply()
 
         // Перезапуск активности для применения новых настроек
-        Intent intent = new Intent(SettingsActivity.this, SettingsActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        finish(); // Завершаем текущую
-        startActivity(intent); // Запускаем заново
+        val intent = Intent(
+            this@SettingsActivity,
+            SettingsActivity::class.java
+        )
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        finish() // Завершаем текущую
+        startActivity(intent) // Запускаем заново
     }
 
     /**
      * Настраивает нижнее меню навигации и обработчики нажатий.
      */
-    private void setupBottomNav() {
-        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
-        nav.setSelectedItemId(R.id.nav_settings); // Устанавливаем текущий пункт
+    private fun setupBottomNav() {
+        val nav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        nav.selectedItemId = R.id.nav_settings // Устанавливаем текущий пункт
 
-        nav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
+        nav.setOnItemSelectedListener { item: MenuItem ->
+            val id = item.itemId
             if (id == R.id.nav_test) {
-                startActivity(new Intent(this, TestListActivity.class));
-                finish();
-                return true;
+                startActivity(
+                    Intent(
+                        this,
+                        TestListActivity::class.java
+                    )
+                )
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_create) {
-                startActivity(new Intent(this, CreateTestActivity.class));
-                finish();
+                startActivity(
+                    Intent(
+                        this,
+                        CreateTestActivity::class.java
+                    )
+                )
+                finish()
             }
             if (id == R.id.nav_menu) {
-                startActivity(new Intent(this, MenuActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, MenuActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_scan) {
-                startActivity(new Intent(this, ScanActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, ScanActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_settings) {
-                startActivity(new Intent(this, SettingsActivity.class));
-                finish();
-                return true;
+                startActivity(
+                    Intent(
+                        this,
+                        SettingsActivity::class.java
+                    )
+                )
+                finish()
+                return@setOnItemSelectedListener true
             }
-            return true;
-        });
+            true
+        }
     }
 
     /**
      * Применяет выбранную тему оформления до вызова setContentView.
      * Получает тему из SharedPreferences и применяет соответствующий стиль.
      */
-    private void applySelectedTheme() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String theme = prefs.getString(KEY_THEME, "Light");
+    private fun applySelectedTheme() {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val theme = prefs.getString(KEY_THEME, "Light")!!
 
-        switch (theme) {
-            case "Light":
-                setTheme(R.style.Theme_KursovayaTesty_Light);
-                break;
-            case "Dark":
-                setTheme(R.style.Theme_KursovayaTesty_Dark);
-                break;
-            case "Special":
-                setTheme(R.style.Theme_KursovayaTesty_Special);
-                break;
+        when (theme) {
+            "Light" -> setTheme(R.style.Theme_KursovayaTesty_Light)
+            "Dark" -> setTheme(R.style.Theme_KursovayaTesty_Dark)
+            "Special" -> setTheme(R.style.Theme_KursovayaTesty_Special)
         }
     }
 
@@ -187,17 +184,24 @@ public class SettingsActivity extends AppCompatActivity {
      * Применяет язык интерфейса до загрузки макета.
      * Получает язык из SharedPreferences и обновляет конфигурацию.
      */
-    private void applyLanguage() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String language = prefs.getString(KEY_LANGUAGE, "English");
+    private fun applyLanguage() {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val language = prefs.getString(KEY_LANGUAGE, "English")!!
 
-        String localeCode = language.equals("Русский") ? "ru" : "en";
-        Locale locale = new Locale(localeCode);
-        Locale.setDefault(locale);
+        val localeCode = if (language == "Русский") "ru" else "en"
+        val locale = Locale(localeCode)
+        Locale.setDefault(locale)
 
-        Configuration config = getResources().getConfiguration();
-        config.setLocale(locale);
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
+    }
+
+    companion object {
+        // Константы для ключей настроек
+        private const val PREFS_NAME = "app_settings"
+        private const val KEY_LANGUAGE = "language"
+        private const val KEY_THEME = "theme"
     }
 }
 

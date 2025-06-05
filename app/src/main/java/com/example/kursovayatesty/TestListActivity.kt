@@ -1,82 +1,88 @@
-package com.example.kursovayatesty;
+package com.example.kursovayatesty
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.os.Build;
-import android.os.Bundle;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.*;
+import android.app.AlertDialog
+import android.content.DialogInterface
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.AdapterView.OnItemClickListener
+import android.widget.BaseAdapter
+import android.widget.ImageButton
+import android.widget.ListView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import com.example.kursovayatesty.SettingsActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
+import java.io.File
+import java.nio.file.Files
+import java.util.Locale
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
+class TestListActivity : AppCompatActivity() {
+    private var testsListView: ListView? = null // Список локальных тестов (файлов)
+    private var testsFolder: File? = null // Папка с локальными тестами
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
+    private var cloudTestsListView: ListView? = null // Список облачных тестов (Firebase)
+    private var db: FirebaseFirestore? = null
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-public class TestListActivity extends AppCompatActivity {
-
-    private ListView testsListView;       // Список локальных тестов (файлов)
-    private File testsFolder;              // Папка с локальными тестами
-
-    private ListView cloudTestsListView;  // Список облачных тестов (Firebase)
-    private FirebaseFirestore db;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         // Применение выбранного языка и темы перед вызовом super.onCreate
-        applyLanguage();
-        applySelectedTheme();
+        applyLanguage()
+        applySelectedTheme()
 
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_test_list);
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_test_list)
 
         // Инициализация элементов UI
-        testsListView = findViewById(R.id.testsListView);
-        testsFolder = new File(getFilesDir(), "Tests");
-        if (!testsFolder.exists()) testsFolder.mkdirs();  // Создаем папку, если нет
+        testsListView = findViewById(R.id.testsListView)
+        testsFolder = File(filesDir, "Tests")
+        if (!testsFolder!!.exists()) testsFolder!!.mkdirs() // Создаем папку, если нет
 
-        loadTestFiles();   // Загрузить локальные тесты в список
-        setupBottomNav();  // Настроить нижнюю навигацию
 
-        cloudTestsListView = findViewById(R.id.cloudTestsListView);
-        db = FirebaseFirestore.getInstance();
+        loadTestFiles() // Загрузить локальные тесты в список
+        setupBottomNav() // Настроить нижнюю навигацию
 
-        loadCloudTests();  // Загрузить облачные тесты из Firebase
+        cloudTestsListView = findViewById(R.id.cloudTestsListView)
+        db = FirebaseFirestore.getInstance()
+
+        loadCloudTests() // Загрузить облачные тесты из Firebase
 
         // Обработчик клика по элементу локального списка тестов
-        testsListView.setOnItemClickListener((parent, view, position, id) -> {
-            String fileName = (String) parent.getItemAtPosition(position);
-            Intent intent = new Intent(TestListActivity.this, TakeTestActivity.class);
-            intent.putExtra("test_file_name", fileName); // Передаем имя файла в TakeTestActivity
-            startActivity(intent);
-        });
+        testsListView?.setOnItemClickListener(OnItemClickListener { parent: AdapterView<*>, view: View?, position: Int, id: Long ->
+            val fileName = parent.getItemAtPosition(position) as String
+            val intent = Intent(
+                this@TestListActivity,
+                TakeTestActivity::class.java
+            )
+            intent.putExtra("test_file_name", fileName) // Передаем имя файла в TakeTestActivity
+            startActivity(intent)
+        })
     }
 
     /**
      * Загрузка списка локальных тестовых файлов из папки "Tests"
      * Создает адаптер для отображения списка имен файлов в testsListView
      */
-    private void loadTestFiles() {
-        File[] files = testsFolder.listFiles();
-        List<String> fileNames = new ArrayList<>();
+    private fun loadTestFiles() {
+        val files = testsFolder!!.listFiles()
+        val fileNames: MutableList<String> = ArrayList()
         if (files != null) {
-            for (File file : files) {
-                if (file.isFile()) fileNames.add(file.getName());
+            for (file in files) {
+                if (file.isFile) fileNames.add(file.name)
             }
         }
 
-        TestListAdapter adapter = new TestListAdapter(fileNames);
-        testsListView.setAdapter(adapter);
+        val adapter = TestListAdapter(fileNames)
+        testsListView!!.adapter = adapter
     }
 
     /**
@@ -84,39 +90,54 @@ public class TestListActivity extends AppCompatActivity {
      * Устанавливает текущий пункт как выбранный
      * При выборе пункта запускает соответствующую активность и закрывает текущую
      */
-    private void setupBottomNav() {
-        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
-        nav.setSelectedItemId(R.id.nav_test);
-        nav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
+    private fun setupBottomNav() {
+        val nav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        nav.selectedItemId = R.id.nav_test
+        nav.setOnItemSelectedListener { item: MenuItem ->
+            val id = item.itemId
             if (id == R.id.nav_test) {
-                startActivity(new Intent(this, TestListActivity.class));
-                finish();
-                return true;
+                startActivity(
+                    Intent(
+                        this,
+                        TestListActivity::class.java
+                    )
+                )
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_create) {
-                startActivity(new Intent(this, CreateTestActivity.class));
-                finish();
-                return true;
+                startActivity(
+                    Intent(
+                        this,
+                        CreateTestActivity::class.java
+                    )
+                )
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_menu) {
-                startActivity(new Intent(this, MenuActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, MenuActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_scan) {
-                startActivity(new Intent(this, ScanActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, ScanActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_settings) {
-                startActivity(new Intent(this, SettingsActivity.class));
-                finish();
-                return true;
+                startActivity(
+                    Intent(
+                        this,
+                        SettingsActivity::class.java
+                    )
+                )
+                finish()
+                return@setOnItemSelectedListener true
             }
-            Toast.makeText(this, "платформа 9 3/4", Toast.LENGTH_SHORT).show();
-            return true;
-        });
+            Toast.makeText(this, "платформа 9 3/4", Toast.LENGTH_SHORT).show()
+            true
+        }
     }
 
     /**
@@ -124,26 +145,18 @@ public class TestListActivity extends AppCompatActivity {
      *
      * @param items список имен файлов тестов
      */
-    private class TestListAdapter extends BaseAdapter {
-        private final List<String> items;
-
-        TestListAdapter(List<String> items) {
-            this.items = items;
+    private inner class TestListAdapter(private val items: MutableList<String>) :
+        BaseAdapter() {
+        override fun getCount(): Int {
+            return items.size
         }
 
-        @Override
-        public int getCount() {
-            return items.size();
+        override fun getItem(position: Int): Any {
+            return items[position]
         }
 
-        @Override
-        public Object getItem(int position) {
-            return items.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
         }
 
         /**
@@ -151,61 +164,76 @@ public class TestListActivity extends AppCompatActivity {
          * Отображает имя файла теста и кнопки: показать QR и удалить файл
          */
         @RequiresApi(api = Build.VERSION_CODES.O)
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            var convertView = convertView
             if (convertView == null) {
-                convertView = getLayoutInflater().inflate(R.layout.test_list_item, parent, false);
+                convertView = layoutInflater.inflate(R.layout.test_list_item, parent, false)
             }
 
-            TextView fileNameView = convertView.findViewById(R.id.testFileName);
-            ImageButton logButton = convertView.findViewById(R.id.logButton);
-            ImageButton deleteButton = convertView.findViewById(R.id.deleteButton);
+            val fileNameView = convertView!!.findViewById<TextView>(R.id.testFileName)
+            val logButton = convertView.findViewById<ImageButton>(R.id.logButton)
+            val deleteButton = convertView.findViewById<ImageButton>(R.id.deleteButton)
 
-            String fileName = items.get(position);
-            fileNameView.setText(fileName);
+            val fileName = items[position]
+            fileNameView.text = fileName
 
             // Переход на TakeTestActivity при клике на элемент списка
-            convertView.setOnClickListener(v -> {
-                Intent intent = new Intent(TestListActivity.this, TakeTestActivity.class);
-                intent.putExtra("test_file_name", fileName);
-                startActivity(intent);
-            });
+            convertView.setOnClickListener { v: View? ->
+                val intent = Intent(
+                    this@TestListActivity,
+                    TakeTestActivity::class.java
+                )
+                intent.putExtra("test_file_name", fileName)
+                startActivity(intent)
+            }
 
             // При клике на кнопку логирования (QR) показываем QR с содержимым файла
-            logButton.setOnClickListener(v -> {
-                File file = new File(testsFolder, fileName);
+            logButton.setOnClickListener { v: View? ->
+                val file = File(testsFolder, fileName)
                 if (file.exists()) {
                     try {
-                        String content = new String(java.nio.file.Files.readAllBytes(file.toPath()));
-                        Intent intent = new Intent(TestListActivity.this, ShowQrActivity.class);
-                        intent.putExtra("qr_content", content);
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        android.util.Log.e("QR_ERROR", "Ошибка чтения файла", e);
+                        val content =
+                            String(Files.readAllBytes(file.toPath()))
+                        val intent = Intent(
+                            this@TestListActivity,
+                            ShowQrActivity::class.java
+                        )
+                        intent.putExtra("qr_content", content)
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Log.e("QR_ERROR", "Ошибка чтения файла", e)
                     }
                 }
-            });
+            }
 
             // Удаление выбранного тестового файла с подтверждением
-            deleteButton.setOnClickListener(v -> {
-                new android.app.AlertDialog.Builder(TestListActivity.this)
-                        .setTitle("Удаление теста")
-                        .setMessage("Удалить файл \"" + fileName + "\"?")
-                        .setPositiveButton("Да", (dialog, which) -> {
-                            File file = new File(testsFolder, fileName);
-                            if (file.exists() && file.delete()) {
-                                items.remove(position);
-                                notifyDataSetChanged();
-                                Toast.makeText(TestListActivity.this, "Файл удалён", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(TestListActivity.this, "Не удалось удалить файл", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .setNegativeButton("Отмена", null)
-                        .show();
-            });
+            deleteButton.setOnClickListener { v: View? ->
+                AlertDialog.Builder(this@TestListActivity)
+                    .setTitle("Удаление теста")
+                    .setMessage("Удалить файл \"$fileName\"?")
+                    .setPositiveButton("Да") { dialog: DialogInterface?, which: Int ->
+                        val file = File(testsFolder, fileName)
+                        if (file.exists() && file.delete()) {
+                            items.removeAt(position)
+                            notifyDataSetChanged()
+                            Toast.makeText(
+                                this@TestListActivity,
+                                "Файл удалён",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                this@TestListActivity,
+                                "Не удалось удалить файл",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                    .setNegativeButton("Отмена", null)
+                    .show()
+            }
 
-            return convertView;
+            return convertView
         }
     }
 
@@ -214,29 +242,38 @@ public class TestListActivity extends AppCompatActivity {
      * Создает адаптер и отображает список облачных тестов
      * При ошибке загрузки показывает тост с сообщением об ошибке
      */
-    private void loadCloudTests() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) return;
+    private fun loadCloudTests() {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
 
-        db.collection("users")
-                .document(user.getUid())
-                .collection("cloud_tests")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<DocumentSnapshot> documents = queryDocumentSnapshots.getDocuments();
-                    List<String> titles = new ArrayList<>();
-                    List<String> contents = new ArrayList<>();
+        db!!.collection("users")
+            .document(user.uid)
+            .collection("cloud_tests")
+            .get()
+            .addOnSuccessListener { queryDocumentSnapshots: QuerySnapshot ->
+                val documents = queryDocumentSnapshots.documents
+                val titles: MutableList<String?> =
+                    ArrayList()
+                val contents: MutableList<String?> =
+                    ArrayList()
 
-                    for (DocumentSnapshot doc : documents) {
-                        titles.add(doc.getString("title"));
-                        contents.add(doc.getString("content"));
-                    }
+                for (doc in documents) {
+                    titles.add(doc.getString("title"))
+                    contents.add(doc.getString("content"))
+                }
 
-                    CloudTestsAdapter adapter = new CloudTestsAdapter(titles, contents);
-                    cloudTestsListView.setAdapter(adapter);
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Ошибка загрузки облачных тестов", Toast.LENGTH_SHORT).show());
+                val cleanTitles = titles.map { it ?: "" }
+                val cleanContents = contents.map { it } // оставим как есть, если адаптер ожидает String?
+                val adapter = CloudTestsAdapter(cleanTitles, cleanContents)
+
+                cloudTestsListView!!.adapter = adapter
+            }
+            .addOnFailureListener { e: Exception? ->
+                Toast.makeText(
+                    this,
+                    "Ошибка загрузки облачных тестов",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
     }
 
     /**
@@ -245,83 +282,76 @@ public class TestListActivity extends AppCompatActivity {
      * @param titles   - список заголовков тестов
      * @param contents - список JSON-содержимого тестов
      */
-    private class CloudTestsAdapter extends BaseAdapter {
-        private final List<String> titles;
-        private final List<String> contents;
-
-        CloudTestsAdapter(List<String> titles, List<String> contents) {
-            this.titles = titles;
-            this.contents = contents;
+    private inner class CloudTestsAdapter(
+        private val titles: List<String>,
+        private val contents: List<String?>
+    ) :
+        BaseAdapter() {
+        override fun getCount(): Int {
+            return titles.size
         }
 
-        @Override
-        public int getCount() {
-            return titles.size();
+        override fun getItem(position: Int): Any {
+            return titles[position]
         }
 
-        @Override
-        public Object getItem(int position) {
-            return titles.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
         }
 
         /**
          * Создает View для элемента списка облачных тестов
          * Отображает название теста, позволяет запускать тест и показывать QR код
          */
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            var convertView = convertView
             if (convertView == null) {
-                convertView = getLayoutInflater().inflate(R.layout.cloud_test_item, parent, false);
+                convertView = layoutInflater.inflate(R.layout.cloud_test_item, parent, false)
             }
 
-            TextView titleView = convertView.findViewById(R.id.cloudTestTitle);
-            ImageButton shareQrBtn = convertView.findViewById(R.id.cloudShareQrButton);
+            val titleView = convertView!!.findViewById<TextView>(R.id.cloudTestTitle)
+            val shareQrBtn = convertView.findViewById<ImageButton>(R.id.cloudShareQrButton)
 
-            String title = titles.get(position);
-            String content = contents.get(position);
+            val title = titles[position]
+            val content = contents[position]
 
-            titleView.setText(title);
+            titleView.text = title
 
             // Запуск теста при клике на строку
-            convertView.setOnClickListener(v -> {
-                Intent intent = new Intent(TestListActivity.this, TakeTestActivity.class);
-                intent.putExtra("test_content", content);
-                startActivity(intent);
-            });
+            convertView.setOnClickListener { v: View? ->
+                val intent = Intent(
+                    this@TestListActivity,
+                    TakeTestActivity::class.java
+                )
+                intent.putExtra("test_content", content)
+                startActivity(intent)
+            }
 
             // Показать QR-код с содержимым теста по кнопке
-            shareQrBtn.setOnClickListener(v -> {
-                Intent intent = new Intent(TestListActivity.this, ShowQrActivity.class);
-                intent.putExtra("qr_content", content);
-                startActivity(intent);
-            });
+            shareQrBtn.setOnClickListener { v: View? ->
+                val intent = Intent(
+                    this@TestListActivity,
+                    ShowQrActivity::class.java
+                )
+                intent.putExtra("qr_content", content)
+                startActivity(intent)
+            }
 
-            return convertView;
+            return convertView
         }
     }
 
     /**
      * Применяет выбранную пользователем тему из SharedPreferences
      */
-    private void applySelectedTheme() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String theme = prefs.getString("theme", "Light");
+    private fun applySelectedTheme() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val theme = prefs.getString("theme", "Light")!!
 
-        switch (theme) {
-            case "Light":
-                setTheme(R.style.Theme_KursovayaTesty_Light);
-                break;
-            case "Dark":
-                setTheme(R.style.Theme_KursovayaTesty_Dark);
-                break;
-            case "Special":
-                setTheme(R.style.Theme_KursovayaTesty_Special);
-                break;
+        when (theme) {
+            "Light" -> setTheme(R.style.Theme_KursovayaTesty_Light)
+            "Dark" -> setTheme(R.style.Theme_KursovayaTesty_Dark)
+            "Special" -> setTheme(R.style.Theme_KursovayaTesty_Special)
         }
     }
 
@@ -329,17 +359,17 @@ public class TestListActivity extends AppCompatActivity {
      * Применяет выбранный язык интерфейса из SharedPreferences
      * По умолчанию English, или "Русский" для русского языка
      */
-    private void applyLanguage() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String language = prefs.getString("language", "English");
+    private fun applyLanguage() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val language = prefs.getString("language", "English")!!
 
-        String localeCode = language.equals("Русский") ? "ru" : "en";
-        Locale locale = new Locale(localeCode);
-        Locale.setDefault(locale);
+        val localeCode = if (language == "Русский") "ru" else "en"
+        val locale = Locale(localeCode)
+        Locale.setDefault(locale)
 
-        Configuration config = getResources().getConfiguration();
-        config.setLocale(locale);
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }
 

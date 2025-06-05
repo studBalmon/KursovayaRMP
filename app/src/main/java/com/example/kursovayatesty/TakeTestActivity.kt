@@ -1,32 +1,31 @@
-package com.example.kursovayatesty;
+package com.example.kursovayatesty
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.*;
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.TextView
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import com.example.kursovayatesty.SettingsActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.gson.Gson
+import java.io.File
+import java.nio.file.Files
+import java.util.Locale
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.gson.Gson;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-public class TakeTestActivity extends AppCompatActivity {
-
-    private LinearLayout questionsLayout; // Контейнер для вопросов (вёрстка)
-    private Button submitButton;          // Кнопка отправки/проверки ответов
-    private List<Question> questions = new ArrayList<>(); // Список вопросов теста
+class TakeTestActivity : AppCompatActivity() {
+    private var questionsLayout: LinearLayout? = null // Контейнер для вопросов (вёрстка)
+    private var submitButton: Button? = null // Кнопка отправки/проверки ответов
+    private var questions: List<Question> = ArrayList() // Список вопросов теста
 
     /**
      * Метод жизненного цикла активности.
@@ -38,34 +37,33 @@ public class TakeTestActivity extends AppCompatActivity {
      * @param savedInstanceState сохранённое состояние (не используется)
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        applyLanguage();
-        applySelectedTheme();
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_take_test);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        applyLanguage()
+        applySelectedTheme()
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_take_test)
 
-        questionsLayout = findViewById(R.id.questionsLayout);
-        submitButton = findViewById(R.id.submitButton);
+        questionsLayout = findViewById(R.id.questionsLayout)
+        submitButton = findViewById(R.id.submitButton)
 
         // Проверяем источник теста: JSON из облака или имя файла
-        if (getIntent().hasExtra("test_content")) {
-            String json = getIntent().getStringExtra("test_content");
-            Log.d("TakeTestActivity", "Loaded test from cloud/json: " + json);
-            loadTestFromJson(json);
-        } else if (getIntent().hasExtra("test_file_name")) {
-            String fileName = getIntent().getStringExtra("test_file_name");
-            loadTestFromFile(fileName);
+        if (intent.hasExtra("test_content")) {
+            val json = intent.getStringExtra("test_content")
+            Log.d("TakeTestActivity", "Loaded test from cloud/json: $json")
+            loadTestFromJson(json)
+        } else if (intent.hasExtra("test_file_name")) {
+            val fileName = intent.getStringExtra("test_file_name")
+            loadTestFromFile(fileName)
         } else {
-            Toast.makeText(this, "Источник теста не найден", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
+            Toast.makeText(this, "Источник теста не найден", Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
 
         // Обработка нажатия кнопки "Отправить"
-        submitButton.setOnClickListener(v -> checkAnswers());
+        submitButton?.setOnClickListener(View.OnClickListener { v: View? -> checkAnswers() })
 
-        setupBottomNav();
+        setupBottomNav()
     }
 
     /**
@@ -75,14 +73,14 @@ public class TakeTestActivity extends AppCompatActivity {
      * @param fileName имя файла с тестом в папке "Tests"
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void loadTestFromFile(String fileName) {
+    private fun loadTestFromFile(fileName: String?) {
         try {
-            File file = new File(getFilesDir(), "Tests/" + fileName);
-            String content = new String(Files.readAllBytes(file.toPath()));
-            loadTestFromJson(content);
-        } catch (Exception e) {
-            Toast.makeText(this, "Ошибка загрузки файла", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+            val file = File(filesDir, "Tests/$fileName")
+            val content = String(Files.readAllBytes(file.toPath()))
+            loadTestFromJson(content)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Ошибка загрузки файла", Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
         }
     }
 
@@ -93,15 +91,18 @@ public class TakeTestActivity extends AppCompatActivity {
      *
      * @param json строка с JSON-тестом
      */
-    private void loadTestFromJson(String json) {
+    private fun loadTestFromJson(json: String?) {
         try {
-            Gson gson = new Gson();
-            Test test = gson.fromJson(json, Test.class);
-            this.questions = test.getQuestions();
-            displayQuestions();
-        } catch (Exception e) {
-            Toast.makeText(this, "Ошибка разбора теста", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+            val gson = Gson()
+            val test = gson.fromJson(
+                json,
+                Test::class.java
+            )
+            this.questions = test.questions!!
+            displayQuestions()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Ошибка разбора теста", Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
         }
     }
 
@@ -110,34 +111,34 @@ public class TakeTestActivity extends AppCompatActivity {
      * Для каждого вопроса создаёт отдельный View с текстом вопроса и вариантами ответов (RadioButton).
      * Добавляет слушатель выбора варианта, чтобы записать ответ пользователя в модель вопроса.
      */
-    private void displayQuestions() {
-        LayoutInflater inflater = LayoutInflater.from(this);
-        questionsLayout.removeAllViews();
+    private fun displayQuestions() {
+        val inflater = LayoutInflater.from(this)
+        questionsLayout!!.removeAllViews()
 
-        for (int i = 0; i < questions.size(); i++) {
-            Question q = questions.get(i);
-            View view = inflater.inflate(R.layout.item_question_take, null);
+        for (i in questions.indices) {
+            val q = questions[i]
+            val view = inflater.inflate(R.layout.item_question_take, null)
 
-            TextView questionText = view.findViewById(R.id.questionText);
-            RadioGroup radioGroup = view.findViewById(R.id.answersGroup);
+            val questionText = view.findViewById<TextView>(R.id.questionText)
+            val radioGroup = view.findViewById<RadioGroup>(R.id.answersGroup)
 
-            questionText.setText((i + 1) + ". " + q.getText());
+            questionText.text = (i + 1).toString() + ". " + q.text
 
             // Добавляем варианты ответов в RadioGroup
-            for (int j = 0; j < q.getOptions().size(); j++) {
-                RadioButton rb = new RadioButton(this);
-                rb.setText(q.getOptions().get(j));
-                rb.setId(j);
-                radioGroup.addView(rb);
+            for (j in q.options!!.indices) {
+                val rb = RadioButton(this)
+                rb.text = q.options!![j]
+                rb.id = j
+                radioGroup.addView(rb)
             }
 
-            int finalI = i;
+            val finalI = i
             // При выборе варианта ответа обновляем поле selectedAnswerIndex в вопросе
-            radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-                questions.get(finalI).setSelectedAnswerIndex(checkedId);
-            });
+            radioGroup.setOnCheckedChangeListener { group: RadioGroup?, checkedId: Int ->
+                questions[finalI].selectedAnswerIndex = checkedId
+            }
 
-            questionsLayout.addView(view);
+            questionsLayout!!.addView(view)
         }
     }
 
@@ -147,69 +148,79 @@ public class TakeTestActivity extends AppCompatActivity {
      * Если есть вопросы без ответов — выводит предупреждение.
      * Иначе показывает количество правильных ответов.
      */
-    private void checkAnswers() {
-        int correct = 0;
-        int unanswered = 0;
+    private fun checkAnswers() {
+        var correct = 0
+        var unanswered = 0
 
-        for (Question q : questions) {
-            if (q.getSelectedAnswerIndex() == -1) {
-                unanswered++;
-            } else if (q.getSelectedAnswerIndex() == q.getCorrectIndex()) {
-                correct++;
+        for (q in questions) {
+            if (q.selectedAnswerIndex == -1) {
+                unanswered++
+            } else if (q.selectedAnswerIndex == q.correctIndex) {
+                correct++
             }
         }
 
         if (unanswered > 0) {
-            Toast.makeText(this, "Ответьте на все вопросы", Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, "Ответьте на все вопросы", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        Toast.makeText(this, "Правильных: " + correct + " из " + questions.size(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Правильных: " + correct + " из " + questions.size, Toast.LENGTH_LONG)
+            .show()
     }
 
     /**
      * Настраивает нижнюю навигационную панель.
      * Обрабатывает выбор пунктов меню и переключает активности.
      */
-    private void setupBottomNav() {
-        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
-        nav.setSelectedItemId(R.id.nav_test);
-        nav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
+    private fun setupBottomNav() {
+        val nav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        nav.selectedItemId = R.id.nav_test
+        nav.setOnItemSelectedListener { item: MenuItem ->
+            val id = item.itemId
             if (id == R.id.nav_test) {
-                startActivity(new Intent(this, TestListActivity.class));
+                startActivity(
+                    Intent(
+                        this,
+                        TestListActivity::class.java
+                    )
+                )
             } else if (id == R.id.nav_create) {
-                startActivity(new Intent(this, CreateTestActivity.class));
+                startActivity(
+                    Intent(
+                        this,
+                        CreateTestActivity::class.java
+                    )
+                )
             } else if (id == R.id.nav_menu) {
-                startActivity(new Intent(this, MenuActivity.class));
+                startActivity(Intent(this, MenuActivity::class.java))
             } else if (id == R.id.nav_scan) {
-                startActivity(new Intent(this, ScanActivity.class));
+                startActivity(Intent(this, ScanActivity::class.java))
             } else if (id == R.id.nav_settings) {
-                startActivity(new Intent(this, SettingsActivity.class));
+                startActivity(
+                    Intent(
+                        this,
+                        SettingsActivity::class.java
+                    )
+                )
             }
-            finish();
-            return true;
-        });
+            finish()
+            true
+        }
     }
 
     /**
      * Применяет выбранную в настройках тему.
      * Считывает из SharedPreferences и вызывает setTheme.
      */
-    private void applySelectedTheme() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String theme = prefs.getString("theme", "Light");
+    private fun applySelectedTheme() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val theme = prefs.getString("theme", "Light")!!
 
-        switch (theme) {
-            case "Light":
-                setTheme(R.style.Theme_KursovayaTesty_Light);
-                break;
-            case "Dark":
-                setTheme(R.style.Theme_KursovayaTesty_Dark);
-                break;
-            case "Special":
-                setTheme(R.style.Theme_KursovayaTesty_Special);
-                break;
+        when (theme) {
+            "Light" -> setTheme(R.style.Theme_KursovayaTesty_Light)
+            "Dark" -> setTheme(R.style.Theme_KursovayaTesty_Dark)
+            "Special" -> setTheme(R.style.Theme_KursovayaTesty_Special)
         }
     }
 
@@ -217,17 +228,17 @@ public class TakeTestActivity extends AppCompatActivity {
      * Применяет выбранный язык интерфейса.
      * Считывает язык из SharedPreferences и меняет Locale приложения.
      */
-    private void applyLanguage() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String language = prefs.getString("language", "English");
+    private fun applyLanguage() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val language = prefs.getString("language", "English")!!
 
-        String localeCode = language.equals("Русский") ? "ru" : "en";
-        Locale locale = new Locale(localeCode);
-        Locale.setDefault(locale);
+        val localeCode = if (language == "Русский") "ru" else "en"
+        val locale = Locale(localeCode)
+        Locale.setDefault(locale)
 
-        Configuration config = getResources().getConfiguration();
-        config.setLocale(locale);
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }
 

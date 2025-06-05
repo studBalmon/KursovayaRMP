@@ -1,156 +1,158 @@
-package com.example.kursovayatesty;
+package com.example.kursovayatesty
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.*;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.gson.Gson;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.*;
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.view.MenuItem
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.gson.Gson
+import java.io.File
+import java.io.FileOutputStream
+import java.util.Locale
 
 /**
  * Активность для создания теста: добавление вопросов, сохранение на устройство и в облако.
  */
-public class CreateTestActivity extends AppCompatActivity {
-
+class CreateTestActivity : AppCompatActivity() {
     // Поля интерфейса
-    private EditText testTitleEditText; // поле для ввода названия теста
-    private LinearLayout questionsContainer; // контейнер для всех вопросов
-    private List<View> questionViews = new ArrayList<>(); // список всех view вопросов
-    private File testsFolder; // папка, где будут храниться локальные JSON-файлы тестов
+    private var testTitleEditText: EditText? = null // поле для ввода названия теста
+    private var questionsContainer: LinearLayout? = null // контейнер для всех вопросов
+    private val questionViews: MutableList<View> = ArrayList() // список всех view вопросов
+    private var testsFolder: File? = null // папка, где будут храниться локальные JSON-файлы тестов
 
     /**
      * Метод жизненного цикла: вызывается при создании активности.
      */
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        applyLanguage(); // применить язык из настроек
-        applySelectedTheme(); // применить тему из настроек
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_test);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        applyLanguage() // применить язык из настроек
+        applySelectedTheme() // применить тему из настроек
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_create_test)
 
         // Инициализация UI-элементов
-        testTitleEditText = findViewById(R.id.testTitleEditText);
-        questionsContainer = findViewById(R.id.questionsContainer);
-        Button addQuestionButton = findViewById(R.id.addQuestionButton);
-        Button saveTestButton = findViewById(R.id.saveTestButton);
+        testTitleEditText = findViewById(R.id.testTitleEditText)
+        questionsContainer = findViewById(R.id.questionsContainer)
+        val addQuestionButton = findViewById<Button>(R.id.addQuestionButton)
+        val saveTestButton = findViewById<Button>(R.id.saveTestButton)
 
         // Создаём папку для хранения тестов, если её нет
-        testsFolder = new File(getFilesDir(), "Tests");
-        if (!testsFolder.exists()) testsFolder.mkdirs();
+        testsFolder = File(filesDir, "Tests")
+        if (!testsFolder!!.exists()) testsFolder!!.mkdirs()
 
         // Кнопка: добавить вопрос
-        addQuestionButton.setOnClickListener(v -> addQuestionView());
+        addQuestionButton.setOnClickListener { v: View? -> addQuestionView() }
 
         // Кнопка: сохранить тест в файл
-        saveTestButton.setOnClickListener(v -> saveTestToFile());
+        saveTestButton.setOnClickListener { v: View? -> saveTestToFile() }
 
         // Кнопка: сохранить тест в облако (Firebase)
-        findViewById(R.id.saveToCloudButton).setOnClickListener(v -> {
-            String title = getTestTitle();
-            List<Question> questions = collectQuestions();
-            saveTestToCloud(title, questions);
-        });
+        findViewById<View>(R.id.saveToCloudButton).setOnClickListener { v: View? ->
+            val title = testTitle
+            val questions = collectQuestions()
+            saveTestToCloud(title, questions)
+        }
 
-        setupBottomNav(); // навигационное меню
-        addQuestionView(); // сразу добавляем 1 вопрос при создании
+        setupBottomNav() // навигационное меню
+        addQuestionView() // сразу добавляем 1 вопрос при создании
     }
 
     /**
      * Добавляет один блок вопроса в интерфейс.
      * Инициализирует переключатели ответов.
      */
-    private void addQuestionView() {
-        View questionView = getLayoutInflater().inflate(R.layout.question_item, null);
-        questionsContainer.addView(questionView);
-        questionViews.add(questionView);
+    private fun addQuestionView() {
+        val questionView = layoutInflater.inflate(R.layout.question_item, null)
+        questionsContainer!!.addView(questionView)
+        questionViews.add(questionView)
 
-        RadioGroup radioGroup = questionView.findViewById(R.id.radioGroup);
+        val radioGroup = questionView.findViewById<RadioGroup>(R.id.radioGroup)
 
         // Установка логики: при нажатии на радиокнопку она становится выбранной
-        for (int i = 0; i < 4; i++) {
-            int finalI = i;
-            RadioButton radio = (RadioButton) radioGroup.getChildAt(i);
-            radio.setOnClickListener(v -> radioGroup.check(radio.getId()));
+        for (i in 0..3) {
+            val finalI = i
+            val radio = radioGroup.getChildAt(i) as RadioButton
+            radio.setOnClickListener { v: View? -> radioGroup.check(radio.id) }
         }
     }
 
     /**
      * Сохраняет тест в файл в формате JSON.
      */
-    private void saveTestToFile() {
-        String title = getTestTitle();
+    private fun saveTestToFile() {
+        val title = testTitle
         if (title.isEmpty()) {
-            Toast.makeText(this, "Введите название теста", Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, "Введите название теста", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        List<Question> questions = collectQuestions();
+        val questions = collectQuestions()
         if (questions.isEmpty()) {
-            Toast.makeText(this, "Добавьте хотя бы один вопрос", Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, "Добавьте хотя бы один вопрос", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        Test test = new Test(title, questions);
-        Gson gson = new Gson();
-        String json = gson.toJson(test);
+        val test = Test(title, questions)
+        val gson = Gson()
+        val json = gson.toJson(test)
 
-        Log.d("CreateTestActivity", "Сериализованный JSON теста:\n" + json);
+        Log.d("CreateTestActivity", "Сериализованный JSON теста:\n$json")
 
-        File testFile = new File(testsFolder, title + ".json");
-        try (FileOutputStream fos = new FileOutputStream(testFile)) {
-            fos.write(json.getBytes());
-            Toast.makeText(this, "Тест сохранён (JSON)", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "Ошибка при сохранении", Toast.LENGTH_SHORT).show();
+        val testFile = File(testsFolder, "$title.json")
+        try {
+            FileOutputStream(testFile).use { fos ->
+                fos.write(json.toByteArray())
+                Toast.makeText(this, "Тест сохранён (JSON)", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Ошибка при сохранении", Toast.LENGTH_SHORT).show()
         }
     }
 
     /**
      * Обработка нажатий в нижней навигации.
      */
-    private void setupBottomNav() {
-        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
-        nav.setSelectedItemId(R.id.nav_create);
-        nav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
+    private fun setupBottomNav() {
+        val nav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        nav.selectedItemId = R.id.nav_create
+        nav.setOnItemSelectedListener { item: MenuItem ->
+            val id = item.itemId
             if (id == R.id.nav_test) {
-                startActivity(new Intent(this, TestListActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, TestListActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_create) {
-                startActivity(new Intent(this, CreateTestActivity.class));
-                finish();
+                startActivity(Intent(this, CreateTestActivity::class.java))
+                finish()
             }
             if (id == R.id.nav_menu) {
-                startActivity(new Intent(this, MenuActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, MenuActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_scan) {
-                startActivity(new Intent(this, ScanActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, ScanActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_settings) {
-                startActivity(new Intent(this, SettingsActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, SettingsActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
-            return true;
-        });
+            true
+        }
     }
 
     /**
@@ -159,26 +161,36 @@ public class CreateTestActivity extends AppCompatActivity {
      * @param title        Название теста.
      * @param questionList Список вопросов.
      */
-    private void saveTestToCloud(String title, List<Question> questionList) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private fun saveTestToCloud(title: String, questionList: List<Question>) {
+        val userId = FirebaseAuth.getInstance().currentUser!!.uid
+        val db = FirebaseFirestore.getInstance()
 
-        Test test = new Test(title, questionList);
-        Gson gson = new Gson();
-        String json = gson.toJson(test);
+        val test = Test(title, questionList)
+        val gson = Gson()
+        val json = gson.toJson(test)
 
-        Map<String, Object> testMap = new HashMap<>();
-        testMap.put("title", title);
-        testMap.put("content", json);
+        val testMap: MutableMap<String, Any> = HashMap()
+        testMap["title"] = title
+        testMap["content"] = json
 
         db.collection("users")
-                .document(userId)
-                .collection("cloud_tests")
-                .add(testMap)
-                .addOnSuccessListener(documentReference ->
-                        Toast.makeText(this, "Тест сохранён в облаке", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Ошибка при сохранении: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            .document(userId)
+            .collection("cloud_tests")
+            .add(testMap)
+            .addOnSuccessListener { documentReference: DocumentReference? ->
+                Toast.makeText(
+                    this,
+                    "Тест сохранён в облаке",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .addOnFailureListener { e: Exception ->
+                Toast.makeText(
+                    this,
+                    "Ошибка при сохранении: " + e.message,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
     }
 
     /**
@@ -186,86 +198,79 @@ public class CreateTestActivity extends AppCompatActivity {
      *
      * @return Список объектов Question.
      */
-    private List<Question> collectQuestions() {
-        List<Question> questionList = new ArrayList<>();
+    private fun collectQuestions(): List<Question> {
+        val questionList: MutableList<Question> = ArrayList()
 
-        for (int i = 0; i < questionsContainer.getChildCount(); i++) {
-            View questionView = questionsContainer.getChildAt(i);
+        for (i in 0..<questionsContainer!!.childCount) {
+            val questionView = questionsContainer!!.getChildAt(i)
 
-            EditText questionEditText = questionView.findViewById(R.id.questionEditText);
-            EditText[] optionEdits = {
-                    questionView.findViewById(R.id.answer1EditText),
-                    questionView.findViewById(R.id.answer2EditText),
-                    questionView.findViewById(R.id.answer3EditText),
-                    questionView.findViewById(R.id.answer4EditText),
-            };
-            RadioGroup radioGroup = questionView.findViewById(R.id.radioGroup);
-            int checkedId = radioGroup.getCheckedRadioButtonId();
+            val questionEditText = questionView.findViewById<EditText>(R.id.questionEditText)
+            val optionEdits = arrayOf(
+                questionView.findViewById(R.id.answer1EditText),
+                questionView.findViewById(R.id.answer2EditText),
+                questionView.findViewById(R.id.answer3EditText),
+                questionView.findViewById<EditText>(R.id.answer4EditText),
+            )
+            val radioGroup = questionView.findViewById<RadioGroup>(R.id.radioGroup)
+            val checkedId = radioGroup.checkedRadioButtonId
 
-            List<String> options = new ArrayList<>();
-            int correctIndex = -1;
+            val options: MutableList<String> = ArrayList()
+            var correctIndex = -1
 
-            for (int j = 0; j < 4; j++) {
-                options.add(optionEdits[j].getText().toString());
+            for (j in 0..3) {
+                options.add(optionEdits[j].text.toString())
 
-                RadioButton radioButton = (RadioButton) radioGroup.getChildAt(j);
-                if (radioButton.getId() == checkedId) {
-                    correctIndex = j;
+                val radioButton = radioGroup.getChildAt(j) as RadioButton
+                if (radioButton.id == checkedId) {
+                    correctIndex = j
                 }
             }
 
-            String questionText = questionEditText.getText().toString().trim();
+            val questionText = questionEditText.text.toString().trim { it <= ' ' }
 
-            if (!questionText.isEmpty() && options.size() == 4 && correctIndex != -1) {
-                questionList.add(new Question(questionText, options, correctIndex));
+            if (!questionText.isEmpty() && options.size == 4 && correctIndex != -1) {
+                questionList.add(Question(questionText, options, correctIndex))
             }
         }
 
-        return questionList;
+        return questionList
     }
 
-    /**
-     * Получает название теста из поля ввода.
-     *
-     * @return Строка — заголовок теста.
-     */
-    private String getTestTitle() {
-        return testTitleEditText.getText().toString().trim();
-    }
+    private val testTitle: String
+        /**
+         * Получает название теста из поля ввода.
+         *
+         * @return Строка — заголовок теста.
+         */
+        get() = testTitleEditText!!.text.toString().trim { it <= ' ' }
 
     /**
      * Применяет тему, выбранную пользователем в настройках.
      */
-    private void applySelectedTheme() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String theme = prefs.getString("theme", "Light");
+    private fun applySelectedTheme() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val theme = prefs.getString("theme", "Light")!!
 
-        switch (theme) {
-            case "Light":
-                setTheme(R.style.Theme_KursovayaTesty_Light);
-                break;
-            case "Dark":
-                setTheme(R.style.Theme_KursovayaTesty_Dark);
-                break;
-            case "Special":
-                setTheme(R.style.Theme_KursovayaTesty_Special);
-                break;
+        when (theme) {
+            "Light" -> setTheme(R.style.Theme_KursovayaTesty_Light)
+            "Dark" -> setTheme(R.style.Theme_KursovayaTesty_Dark)
+            "Special" -> setTheme(R.style.Theme_KursovayaTesty_Special)
         }
     }
 
     /**
      * Применяет язык интерфейса, выбранный пользователем.
      */
-    private void applyLanguage() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String language = prefs.getString("language", "English");
+    private fun applyLanguage() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val language = prefs.getString("language", "English")!!
 
-        String localeCode = language.equals("Русский") ? "ru" : "en";
-        Locale locale = new Locale(localeCode);
-        Locale.setDefault(locale);
+        val localeCode = if (language == "Русский") "ru" else "en"
+        val locale = Locale(localeCode)
+        Locale.setDefault(locale)
 
-        Configuration config = getResources().getConfiguration();
-        config.setLocale(locale);
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }

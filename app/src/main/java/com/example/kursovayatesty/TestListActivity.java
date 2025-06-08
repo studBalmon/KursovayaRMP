@@ -170,7 +170,7 @@ public class TestListActivity extends AppCompatActivity {
             View progressFill = convertView.findViewById(R.id.progressFill);
 
             String fileName = items.get(position);
-            fileNameView.setText(fileName);
+            fileNameView.setText(fileName.split("\\.json")[0]);
 
             // ===== Клик: открыть тест =====
             convertView.setOnClickListener(v -> {

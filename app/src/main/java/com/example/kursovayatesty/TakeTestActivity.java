@@ -164,8 +164,13 @@ public class TakeTestActivity extends AppCompatActivity {
             return;
         }
 
-        Toast.makeText(this, "Правильных: " + correct + " из " + questions.size(), Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(this, StatisticsActivity.class);
+        intent.putExtra("correct", correct);
+        intent.putExtra("total", questions.size());
+        startActivity(intent);
+        finish();
     }
+
 
     /**
      * Настраивает нижнюю навигационную панель.

@@ -15,8 +15,13 @@ import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -39,10 +44,28 @@ public class StatisticsActivity extends AppCompatActivity {
         PieChart pieChart = findViewById(R.id.pieChart);
         TextView resultText = findViewById(R.id.resultText);
 
+        String testName = getIntent().getStringExtra("testName");
         int correct = getIntent().getIntExtra("correct", 0);
         int total = getIntent().getIntExtra("total", 1); // Не делим на 0
 
         float percentage = ((float) correct / total) * 100;
+        // Локальное сохранение
+        ScoreManager.saveBestScore(this, testName, percentage);
+
+        // Firebase сохранение
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            DocumentReference scoreRef = db.collection("users").document(user.getUid())
+                    .collection("test_scores").document(testName);
+
+            scoreRef.get().addOnSuccessListener(doc -> {
+                float cloudBest = doc.contains("best_percent") ? doc.getDouble("best_percent").floatValue() : 0f;
+                if (percentage > cloudBest) {
+                    scoreRef.set(Collections.singletonMap("best_percent", percentage));
+                }
+            });
+        }
         resultText.setText("Правильных: " + correct + " из " + total + " (" + (int) percentage + "%)");
 
         List<PieEntry> entries = new ArrayList<>();

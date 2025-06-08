@@ -9,79 +9,79 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-    android:layout_weight="1"
-    android:orientation="vertical"
-    android:padding="16dp">
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/choseLanguage"
-        android:textSize="18sp" />
-
-    <RadioGroup
-        android:id="@+id/languageRadioGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <RadioButton
-            android:id="@+id/rbEnglish"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="English" />
+            android:layout_marginBottom="8dp"
+            android:text="@string/choseLanguage"
+            android:textSize="18sp" />
 
-        <RadioButton
-            android:id="@+id/rbRussian"
+        <RadioGroup
+            android:id="@+id/languageRadioGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/rbEnglish"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="English" />
+
+            <RadioButton
+                android:id="@+id/rbRussian"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Русский" />
+        </RadioGroup>
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Русский" />
-    </RadioGroup>
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/choseTheme"
+            android:textSize="18sp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="8dp"
-        android:text="@string/choseTheme"
-        android:textSize="18sp" />
-
-    <RadioGroup
-        android:id="@+id/themeRadioGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <RadioButton
-            android:id="@+id/rbLight"
+        <RadioGroup
+            android:id="@+id/themeRadioGroup"
             android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/rbLight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/light" />
+
+            <RadioButton
+                android:id="@+id/rbDark"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dark" />
+
+            <RadioButton
+                android:id="@+id/rbSpecial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/special" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/saveSettingsButton"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="@string/light" />
-
-        <RadioButton
-            android:id="@+id/rbDark"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/dark" />
-
-        <RadioButton
-            android:id="@+id/rbSpecial"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/special" />
-    </RadioGroup>
-
-    <Button
-        android:id="@+id/saveSettingsButton"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/save" />
-</LinearLayout>
-
-<com.google.android.material.bottomnavigation.BottomNavigationView
-android:id="@+id/bottomNavigation"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-app:menu="@menu/bottom_nav_menu" />
-
+            android:layout_marginTop="32dp"
+            android:text="@string/save" />
     </LinearLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:menu="@menu/bottom_nav_menu" />
+
+</LinearLayout>

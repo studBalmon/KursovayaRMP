@@ -2,23 +2,48 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="12dp"
-    android:gravity="center_vertical">
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/cloudTestTitle"
-        android:layout_width="0dp"
-        android:layout_weight="1"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Название теста"
-        android:textSize="18sp" />
+        android:gravity="center_vertical"
+        android:padding="12dp"
+        android:orientation="horizontal">
 
-    <ImageButton
-        android:id="@+id/cloudShareQrButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_menu_share"
-        android:contentDescription="Показать QR"
-        android:background="?attr/selectableItemBackgroundBorderless" />
+        <TextView
+            android:id="@+id/cloudTestTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Название теста"
+            android:textSize="18sp" />
+
+        <ImageButton
+            android:id="@+id/cloudShareQrButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Показать QR"
+            android:src="@android:drawable/ic_menu_share" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/progressContainer"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:visibility="gone"
+        android:background="#E0E0E0"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp">
+
+        <View
+            android:id="@+id/progressFill"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="#4CAF50" />
+    </LinearLayout>
+
 </LinearLayout>

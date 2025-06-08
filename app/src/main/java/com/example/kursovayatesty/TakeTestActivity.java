@@ -27,6 +27,7 @@ public class TakeTestActivity extends AppCompatActivity {
     private LinearLayout questionsLayout; // Контейнер для вопросов (вёрстка)
     private Button submitButton;          // Кнопка отправки/проверки ответов
     private List<Question> questions = new ArrayList<>(); // Список вопросов теста
+    private String testTitle;
 
     /**
      * Метод жизненного цикла активности.
@@ -97,6 +98,7 @@ public class TakeTestActivity extends AppCompatActivity {
         try {
             Gson gson = new Gson();
             Test test = gson.fromJson(json, Test.class);
+            this.testTitle = test.getTitle();
             this.questions = test.getQuestions();
             displayQuestions();
         } catch (Exception e) {
@@ -163,9 +165,9 @@ public class TakeTestActivity extends AppCompatActivity {
             Toast.makeText(this, "Ответьте на все вопросы", Toast.LENGTH_SHORT).show();
             return;
         }
-
         Intent intent = new Intent(this, StatisticsActivity.class);
         intent.putExtra("correct", correct);
+        intent.putExtra("testName", testTitle);
         intent.putExtra("total", questions.size());
         startActivity(intent);
         finish();

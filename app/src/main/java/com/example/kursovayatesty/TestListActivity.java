@@ -3,8 +3,10 @@ package com.example.kursovayatesty;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
@@ -12,6 +14,10 @@ import android.widget.*;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -160,18 +166,20 @@ public class TestListActivity extends AppCompatActivity {
             TextView fileNameView = convertView.findViewById(R.id.testFileName);
             ImageButton logButton = convertView.findViewById(R.id.logButton);
             ImageButton deleteButton = convertView.findViewById(R.id.deleteButton);
+            LinearLayout progressContainer = convertView.findViewById(R.id.progressContainer);
+            View progressFill = convertView.findViewById(R.id.progressFill);
 
             String fileName = items.get(position);
             fileNameView.setText(fileName);
 
-            // Переход на TakeTestActivity при клике на элемент списка
+            // ===== Клик: открыть тест =====
             convertView.setOnClickListener(v -> {
                 Intent intent = new Intent(TestListActivity.this, TakeTestActivity.class);
                 intent.putExtra("test_file_name", fileName);
                 startActivity(intent);
             });
 
-            // При клике на кнопку логирования (QR) показываем QR с содержимым файла
+            // ===== Клик: показать QR-код =====
             logButton.setOnClickListener(v -> {
                 File file = new File(testsFolder, fileName);
                 if (file.exists()) {
@@ -186,7 +194,7 @@ public class TestListActivity extends AppCompatActivity {
                 }
             });
 
-            // Удаление выбранного тестового файла с подтверждением
+            // ===== Клик: удалить файл =====
             deleteButton.setOnClickListener(v -> {
                 new android.app.AlertDialog.Builder(TestListActivity.this)
                         .setTitle("Удаление теста")
@@ -205,7 +213,47 @@ public class TestListActivity extends AppCompatActivity {
                         .show();
             });
 
+            // ==== Прогресс: сначала попытка загрузки из Firestore ====
+            progressContainer.setVisibility(View.GONE); // по умолчанию скрываем
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                Log.d("debug",fileName + fileName.split("\\.json")[0]);
+                db.collection("users")
+                        .document(user.getUid())
+                        .collection("test_scores")
+                        .document(fileName.split("\\.json")[0]) // имя файла используем как ключ
+                        .get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            if (documentSnapshot.exists()) {
+                                Double bestPercent = documentSnapshot.getDouble("best_percent");
+                                if (bestPercent != null) {
+                                    showProgressBar(progressContainer, progressFill, bestPercent.floatValue());
+                                } else {
+                                    tryLoadLocalProgress(fileName, progressContainer, progressFill);
+                                }
+                            } else {
+                                tryLoadLocalProgress(fileName, progressContainer, progressFill);
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            tryLoadLocalProgress(fileName, progressContainer, progressFill);
+                        });
+            } else {
+                // Если пользователь не авторизован — сразу локальный
+                tryLoadLocalProgress(fileName, progressContainer, progressFill);
+            }
+
             return convertView;
+        }
+        private void tryLoadLocalProgress(String fileName, LinearLayout container, View fill) {
+            SharedPreferences prefs = getSharedPreferences("local_test_progress", MODE_PRIVATE);
+            float percent = prefs.getFloat(fileName, -1f);
+            if (percent >= 0) {
+                showProgressBar(container, fill, percent);
+            } else {
+                container.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -239,6 +287,7 @@ public class TestListActivity extends AppCompatActivity {
                         Toast.makeText(this, "Ошибка загрузки облачных тестов", Toast.LENGTH_SHORT).show());
     }
 
+
     /**
      * Адаптер для отображения списка облачных тестов с возможностью запуска и показа QR
      *
@@ -269,10 +318,6 @@ public class TestListActivity extends AppCompatActivity {
             return position;
         }
 
-        /**
-         * Создает View для элемента списка облачных тестов
-         * Отображает название теста, позволяет запускать тест и показывать QR код
-         */
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
@@ -281,28 +326,77 @@ public class TestListActivity extends AppCompatActivity {
 
             TextView titleView = convertView.findViewById(R.id.cloudTestTitle);
             ImageButton shareQrBtn = convertView.findViewById(R.id.cloudShareQrButton);
+            LinearLayout progressContainer = convertView.findViewById(R.id.progressContainer);
+            View progressFill = convertView.findViewById(R.id.progressFill);
 
             String title = titles.get(position);
             String content = contents.get(position);
 
             titleView.setText(title);
 
-            // Запуск теста при клике на строку
             convertView.setOnClickListener(v -> {
                 Intent intent = new Intent(TestListActivity.this, TakeTestActivity.class);
                 intent.putExtra("test_content", content);
                 startActivity(intent);
             });
 
-            // Показать QR-код с содержимым теста по кнопке
             shareQrBtn.setOnClickListener(v -> {
                 Intent intent = new Intent(TestListActivity.this, ShowQrActivity.class);
                 intent.putExtra("qr_content", content);
                 startActivity(intent);
             });
 
+            // Скрываем по умолчанию
+            progressContainer.setVisibility(View.GONE);
+            progressFill.getLayoutParams().width = 0;
+
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                db.collection("users")
+                        .document(user.getUid())
+                        .collection("test_scores")
+                        .document(title)
+                        .get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            if (documentSnapshot.exists()) {
+                                Double bestPercent = documentSnapshot.getDouble("best_percent");
+                                if (bestPercent != null) {
+                                    showProgressBar(progressContainer, progressFill, bestPercent.floatValue());
+                                }
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            progressContainer.setVisibility(View.GONE);
+                        });
+            }
+
             return convertView;
         }
+    }
+    private void showProgressBar(LinearLayout container, View fill, float percent) {
+        container.setVisibility(View.VISIBLE);
+
+        int color;
+        if (percent < 50) {
+            color = Color.RED;
+        } else if (percent < 80) {
+            color = Color.parseColor("#FFC107"); // Жёлтый
+        } else {
+            color = Color.parseColor("#4CAF50"); // Зелёный
+        }
+
+        fill.setBackgroundColor(color);
+
+        // Обновляем ширину заливки на основании процента
+        container.post(() -> {
+            int fullWidth = container.getWidth();
+            int targetWidth = (int) (fullWidth * (percent / 100f));
+
+            ViewGroup.LayoutParams params = fill.getLayoutParams();
+            params.width = targetWidth;
+            fill.setLayoutParams(params);
+        });
     }
 
     /**

@@ -21,6 +21,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -328,6 +329,7 @@ public class TestListActivity extends AppCompatActivity {
             ImageButton shareQrBtn = convertView.findViewById(R.id.cloudShareQrButton);
             LinearLayout progressContainer = convertView.findViewById(R.id.progressContainer);
             View progressFill = convertView.findViewById(R.id.progressFill);
+            ImageButton deleteButton = convertView.findViewById(R.id.cloudDeleteButton);
 
             String title = titles.get(position);
             String content = contents.get(position);
@@ -345,6 +347,61 @@ public class TestListActivity extends AppCompatActivity {
                 intent.putExtra("qr_content", content);
                 startActivity(intent);
             });
+
+            deleteButton.setOnClickListener(v -> {
+                new android.app.AlertDialog.Builder(TestListActivity.this)
+                        .setTitle("Удаление облачного теста")
+                        .setMessage("Удалить тест \"" + title + "\" из облака?")
+                        .setPositiveButton("Да", (dialog, which) -> {
+                            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                            if (user != null) {
+                                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                                // Коллекция с облачными тестами пользователя
+                                CollectionReference cloudTestsRef = db.collection("users")
+                                        .document(user.getUid())
+                                        .collection("cloud_tests");
+
+                                // Поиск документа с нужным title
+                                cloudTestsRef.whereEqualTo("title", title)
+                                        .get()
+                                        .addOnSuccessListener(querySnapshot -> {
+                                            if (!querySnapshot.isEmpty()) {
+                                                // Предполагается, что title уникален, возьмём первый документ
+                                                DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                                                doc.getReference().delete()
+                                                        .addOnSuccessListener(unused -> {
+                                                            // Также удалить best_percent
+                                                            db.collection("users")
+                                                                    .document(user.getUid())
+                                                                    .collection("test_scores")
+                                                                    .document(title)
+                                                                    .delete();
+
+                                                            titles.remove(position);
+                                                            contents.remove(position);
+                                                            notifyDataSetChanged();
+
+                                                            Toast.makeText(TestListActivity.this, "Тест удалён", Toast.LENGTH_SHORT).show();
+                                                        })
+                                                        .addOnFailureListener(e -> {
+                                                            Toast.makeText(TestListActivity.this, "Ошибка удаления", Toast.LENGTH_SHORT).show();
+                                                            Log.e("DELETE_CLOUD", "Ошибка удаления: ", e);
+                                                        });
+                                            } else {
+                                                Toast.makeText(TestListActivity.this, "Тест не найден в облаке", Toast.LENGTH_SHORT).show();
+                                            }
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(TestListActivity.this, "Ошибка при поиске теста", Toast.LENGTH_SHORT).show();
+                                            Log.e("DELETE_CLOUD", "Ошибка поиска: ", e);
+                                        });
+                            }
+                        })
+                        .setNegativeButton("Отмена", null)
+                        .show();
+            });
+
+
 
             // Скрываем по умолчанию
             progressContainer.setVisibility(View.GONE);

@@ -19,13 +19,29 @@
             android:text="Название теста"
             android:textSize="18sp" />
 
-        <ImageButton
-            android:id="@+id/cloudShareQrButton"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Показать QR"
-            android:src="@android:drawable/ic_menu_share" />
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/cloudShareQrButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Показать QR"
+                android:src="@android:drawable/ic_menu_share" />
+
+            <ImageButton
+                android:id="@+id/cloudDeleteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_menu_delete"
+                android:contentDescription="Удалить"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@android:color/holo_red_dark" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout

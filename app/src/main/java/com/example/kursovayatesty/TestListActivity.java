@@ -486,5 +486,3 @@ public class TestListActivity extends AppCompatActivity {
         getResources().updateConfiguration(config, getResources().getDisplayMetrics());
     }
 }
-
-

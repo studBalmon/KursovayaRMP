@@ -14,8 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.*;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.Locale;
 
@@ -56,7 +54,6 @@ public class AccountSettingsActivity extends AppCompatActivity {
         updateEmailButton = findViewById(R.id.updateEmailButton);
         updatePasswordButton = findViewById(R.id.updatePasswordButton);
         logoutButton = findViewById(R.id.logoutButton);
-        avatarImageView = findViewById(R.id.avatarImageView);
 
 
         setupBottomNav();

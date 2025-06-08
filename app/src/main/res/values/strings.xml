@@ -32,4 +32,10 @@
     <string name="choseLanguage">Chose language</string>
     <string name="choseTheme">Chose theme</string>
     <string name="exit">Exit</string>
+    <string name="accauntSettings">Accaunt settings</string>
+    <string name="newEmail">New email</string>
+    <string name="changeEmail">Change email</string>
+    <string name="newPassword">New password</string>
+    <string name="changePassword">Change password</string>
+    <string name="exitFromAccount">Exit from account</string>
 </resources>

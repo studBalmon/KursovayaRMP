@@ -23,11 +23,22 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         applyLanguage();         // Применяет язык, выбранный в настройках
         applySelectedTheme();    // Применяет тему оформления
+
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
         // Инициализация Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+
+        //Проверка: если пользователь уже вошёл, переходим в настройки аккаунта
+        if (mAuth.getCurrentUser() != null) {
+            Intent intent = new Intent(this, AccountSettingsActivity.class); // замените на вашу активность
+            startActivity(intent);
+            finish(); // закрываем LoginActivity
+            return;
+        }
+
+        //Если пользователь не вошёл, показываем экран авторизации
+        setContentView(R.layout.activity_login);
 
         // Привязка UI-элементов
         emailEditText = findViewById(R.id.emailEditText);
@@ -42,6 +53,7 @@ public class LoginActivity extends AppCompatActivity {
         // Настройка нижнего навигационного меню
         setupBottomNav();
     }
+
 
     /**
      * Авторизация пользователя с помощью email и пароля.
@@ -60,7 +72,7 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // При успешном входе — переход в главное меню
-                        startActivity(new Intent(this, MenuActivity.class));
+                        startActivity(new Intent(this, AccountSettingsActivity.class));
                         finish();
                     } else {
                         Toast.makeText(this, "Ошибка входа: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();

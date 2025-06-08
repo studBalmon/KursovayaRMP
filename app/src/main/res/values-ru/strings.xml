@@ -33,4 +33,11 @@
     <string name="choseLanguage">Выберите язык</string>
     <string name="choseTheme">Выберите тему</string>
     <string name="exit">Выйти</string>
+    <string name="accauntSettings">Настройки аккаунта</string>
+    <string name="newEmail">Новый Email</string>
+    <string name="changeEmail">Изменить Email</string>
+    <string name="newPassword">Новый пароль</string>
+    <string name="changePassword">Изменить пароль</string>
+    <string name="exitFromAccount">Выйти из аккаунта</string>
+
 </resources>

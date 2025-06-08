@@ -18,8 +18,8 @@ public class MenuActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        applyLanguage();         // Устанавливает язык интерфейса из настроек
-        applySelectedTheme();    // Применяет выбранную пользователем тему
+        applyLanguage();
+        applySelectedTheme();
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu); // Загружает разметку главного меню

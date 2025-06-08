@@ -3,8 +3,10 @@ package com.example.kursovayatesty;
 import java.io.Serializable;
 import java.util.List;
 
-// Класс Question представляет один вопрос теста
-// Реализует интерфейс Serializable для возможности сериализации (например, при передаче между активностями)
+ /**
+  * Класс Question представляет один вопрос теста
+  * Реализует интерфейс Serializable для возможности сериализации (например, при передаче между активностями)
+  **/
 public class Question implements Serializable {
 
     // Текст вопроса

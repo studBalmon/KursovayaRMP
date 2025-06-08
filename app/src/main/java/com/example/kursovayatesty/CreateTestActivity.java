@@ -63,8 +63,8 @@ public class CreateTestActivity extends AppCompatActivity {
             saveTestToCloud(title, questions);
         });
 
-        setupBottomNav(); // навигационное меню
-        addQuestionView(); // сразу добавляем 1 вопрос при создании
+        setupBottomNav();
+        addQuestionView();
     }
 
     /**

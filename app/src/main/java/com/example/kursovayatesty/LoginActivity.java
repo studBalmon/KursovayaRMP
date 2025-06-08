@@ -21,8 +21,8 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        applyLanguage();         // Применяет язык, выбранный в настройках
-        applySelectedTheme();    // Применяет тему оформления
+        applyLanguage();
+        applySelectedTheme();
 
         super.onCreate(savedInstanceState);
 
@@ -50,7 +50,6 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(v -> login());
         registerButton.setOnClickListener(v -> register());
 
-        // Настройка нижнего навигационного меню
         setupBottomNav();
     }
 
@@ -140,7 +139,6 @@ public class LoginActivity extends AppCompatActivity {
                 return true;
             }
 
-            // Шутливое сообщение по умолчанию
             Toast.makeText(this, "платформа 9 3/4", Toast.LENGTH_SHORT).show();
             return true;
         });

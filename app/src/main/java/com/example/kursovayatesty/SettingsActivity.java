@@ -44,8 +44,8 @@ public class SettingsActivity extends AppCompatActivity {
         themeRadioGroup = findViewById(R.id.themeRadioGroup);
         saveButton = findViewById(R.id.saveSettingsButton);
 
-        setupBottomNav();  // Настройка нижнего навигационного меню
-        loadSettings();    // Загрузка сохранённых настроек в интерфейс
+        setupBottomNav();
+        loadSettings();
 
         // Обработчик кнопки сохранения
         saveButton.setOnClickListener(v -> {

@@ -52,13 +52,13 @@ public class TestListActivity extends AppCompatActivity {
         testsFolder = new File(getFilesDir(), "Tests");
         if (!testsFolder.exists()) testsFolder.mkdirs();  // Создаем папку, если нет
 
-        loadTestFiles();   // Загрузить локальные тесты в список
-        setupBottomNav();  // Настроить нижнюю навигацию
+        loadTestFiles();
+        setupBottomNav();
 
         cloudTestsListView = findViewById(R.id.cloudTestsListView);
         db = FirebaseFirestore.getInstance();
 
-        loadCloudTests();  // Загрузить облачные тесты из Firebase
+        loadCloudTests();
 
         // Обработчик клика по элементу локального списка тестов
         testsListView.setOnItemClickListener((parent, view, position, id) -> {
@@ -86,11 +86,6 @@ public class TestListActivity extends AppCompatActivity {
         testsListView.setAdapter(adapter);
     }
 
-    /**
-     * Настройка нижней навигационной панели с переходами на разные активности
-     * Устанавливает текущий пункт как выбранный
-     * При выборе пункта запускает соответствующую активность и закрывает текущую
-     */
     private void setupBottomNav() {
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
         nav.setSelectedItemId(R.id.nav_test);
@@ -173,14 +168,14 @@ public class TestListActivity extends AppCompatActivity {
             String fileName = items.get(position);
             fileNameView.setText(fileName.split("\\.json")[0]);
 
-            // ===== Клик: открыть тест =====
+            // Клик: открыть тест
             convertView.setOnClickListener(v -> {
                 Intent intent = new Intent(TestListActivity.this, TakeTestActivity.class);
                 intent.putExtra("test_file_name", fileName);
                 startActivity(intent);
             });
 
-            // ===== Клик: показать QR-код =====
+            // Клик: показать QR-код
             logButton.setOnClickListener(v -> {
                 File file = new File(testsFolder, fileName);
                 if (file.exists()) {
@@ -195,7 +190,7 @@ public class TestListActivity extends AppCompatActivity {
                 }
             });
 
-            // ===== Клик: удалить файл =====
+            // Клик: удалить файл
             deleteButton.setOnClickListener(v -> {
                 new android.app.AlertDialog.Builder(TestListActivity.this)
                         .setTitle("Удаление теста")
@@ -214,12 +209,12 @@ public class TestListActivity extends AppCompatActivity {
                         .show();
             });
 
-            // ==== Прогресс: сначала попытка загрузки из Firestore ====
+            // Прогресс: сначала попытка загрузки из Firestore
             progressContainer.setVisibility(View.GONE); // по умолчанию скрываем
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user != null) {
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
-                Log.d("debug",fileName + fileName.split("\\.json")[0]);
+                Log.d("debug", fileName + fileName.split("\\.json")[0]);
                 db.collection("users")
                         .document(user.getUid())
                         .collection("test_scores")
@@ -247,6 +242,7 @@ public class TestListActivity extends AppCompatActivity {
 
             return convertView;
         }
+
         private void tryLoadLocalProgress(String fileName, LinearLayout container, View fill) {
             SharedPreferences prefs = getSharedPreferences("local_test_progress", MODE_PRIVATE);
             float percent = prefs.getFloat(fileName, -1f);
@@ -402,7 +398,6 @@ public class TestListActivity extends AppCompatActivity {
             });
 
 
-
             // Скрываем по умолчанию
             progressContainer.setVisibility(View.GONE);
             progressFill.getLayoutParams().width = 0;
@@ -431,6 +426,7 @@ public class TestListActivity extends AppCompatActivity {
             return convertView;
         }
     }
+
     private void showProgressBar(LinearLayout container, View fill, float percent) {
         container.setVisibility(View.VISIBLE);
 
@@ -456,9 +452,6 @@ public class TestListActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Применяет выбранную пользователем тему из SharedPreferences
-     */
     private void applySelectedTheme() {
         SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
         String theme = prefs.getString("theme", "Light");

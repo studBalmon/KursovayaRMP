@@ -23,15 +23,12 @@ public class AccountSettingsActivity extends AppCompatActivity {
     private Button updateEmailButton, updatePasswordButton, logoutButton;
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private ImageView avatarImageView;
-    private Uri selectedImageUri;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        applyLanguage();         // Применяет язык, выбранный в настройках
-        applySelectedTheme();    // Применяет тему оформления
+        applyLanguage();
+        applySelectedTheme();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account_settings);
 
@@ -44,8 +41,6 @@ public class AccountSettingsActivity extends AppCompatActivity {
             finish();
             return;
         }
-
-
 
 
         // Инициализация элементов UI
@@ -91,6 +86,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
             finish();
         });
     }
+
     private void applySelectedTheme() {
         SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
         String theme = prefs.getString("theme", "Light");
@@ -123,9 +119,10 @@ public class AccountSettingsActivity extends AppCompatActivity {
         config.setLocale(locale);
         getResources().updateConfiguration(config, getResources().getDisplayMetrics());
     }
+
     private void setupBottomNav() {
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
-        nav.setSelectedItemId(R.id.nav_menu); // Устанавливаем текущую вкладку
+        nav.setSelectedItemId(R.id.nav_menu);
 
         nav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -156,7 +153,6 @@ public class AccountSettingsActivity extends AppCompatActivity {
                 return true;
             }
 
-            // Шутливое сообщение по умолчанию
             Toast.makeText(this, "платформа 9 3/4", Toast.LENGTH_SHORT).show();
             return true;
         });

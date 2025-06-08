@@ -174,10 +174,6 @@ public class TakeTestActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * Настраивает нижнюю навигационную панель.
-     * Обрабатывает выбор пунктов меню и переключает активности.
-     */
     private void setupBottomNav() {
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
         nav.setSelectedItemId(R.id.nav_test);
@@ -199,10 +195,7 @@ public class TakeTestActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Применяет выбранную в настройках тему.
-     * Считывает из SharedPreferences и вызывает setTheme.
-     */
+
     private void applySelectedTheme() {
         SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
         String theme = prefs.getString("theme", "Light");
@@ -220,10 +213,7 @@ public class TakeTestActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Применяет выбранный язык интерфейса.
-     * Считывает язык из SharedPreferences и меняет Locale приложения.
-     */
+
     private void applyLanguage() {
         SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
         String language = prefs.getString("language", "English");

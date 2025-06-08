@@ -182,4 +182,3 @@ public class LoginActivity extends AppCompatActivity {
         getResources().updateConfiguration(config, getResources().getDisplayMetrics());
     }
 }
-

@@ -227,6 +227,3 @@ public class TakeTestActivity extends AppCompatActivity {
         getResources().updateConfiguration(config, getResources().getDisplayMetrics());
     }
 }
-
-
-

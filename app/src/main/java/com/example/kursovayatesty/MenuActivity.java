@@ -91,4 +91,3 @@ public class MenuActivity extends AppCompatActivity {
         getResources().updateConfiguration(config, getResources().getDisplayMetrics());
     }
 }
-

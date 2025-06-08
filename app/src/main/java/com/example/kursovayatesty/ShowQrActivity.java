@@ -66,4 +66,3 @@ public class ShowQrActivity extends AppCompatActivity {
         return bmp;
     }
 }
-

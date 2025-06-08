@@ -108,4 +108,3 @@ public class ScanActivity extends AppCompatActivity {
         finish();
     }
 }
-

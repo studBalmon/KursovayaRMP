@@ -200,4 +200,3 @@ public class SettingsActivity extends AppCompatActivity {
         getResources().updateConfiguration(config, getResources().getDisplayMetrics());
     }
 }
-

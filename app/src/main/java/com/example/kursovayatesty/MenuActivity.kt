@@ -1,93 +1,60 @@
-package com.example.kursovayatesty;
+package com.example.kursovayatesty
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.os.Bundle;
-import android.widget.Toast;
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import java.util.Locale
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+class MenuActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        applyLanguage()
+        applySelectedTheme()
 
-import java.util.Locale;
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_menu)
 
-public class MenuActivity extends AppCompatActivity {
+        findViewById<View>(R.id.buttonCreate).setOnClickListener {
+            startActivity(Intent(this, CreateTestActivity::class.java))
+        }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        applyLanguage();
-        applySelectedTheme();
+        findViewById<View>(R.id.buttonTests).setOnClickListener {
+            startActivity(Intent(this, TestListActivity::class.java))
+        }
 
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_menu); // Загружает разметку главного меню
+        findViewById<View>(R.id.authMenu).setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+        }
 
-        // Кнопка "Создать тест" — переходит на экран создания теста
-        findViewById(R.id.buttonCreate).setOnClickListener(v -> {
-            startActivity(new Intent(this, CreateTestActivity.class));
-        });
+        findViewById<View>(R.id.buttonScan).setOnClickListener {
+            startActivity(Intent(this, ScanActivity::class.java))
+        }
 
-        // Кнопка "Список тестов" — открывает список доступных тестов
-        findViewById(R.id.buttonTests).setOnClickListener(v -> {
-            startActivity(new Intent(this, TestListActivity.class));
-        });
-
-        // Кнопка "Авторизация" — переход к экрану входа и регистрации
-        findViewById(R.id.authMenu).setOnClickListener(v -> {
-            startActivity(new Intent(this, LoginActivity.class));
-        });
-
-        // Кнопка "Сканировать" — переход к экрану сканирования QR-кода
-        findViewById(R.id.buttonScan).setOnClickListener(v -> {
-            startActivity(new Intent(this, ScanActivity.class));
-        });
-
-        // Кнопка "Настройки" — переход к экрану настроек
-        findViewById(R.id.buttonSettings).setOnClickListener(v -> {
-            startActivity(new Intent(this, SettingsActivity.class));
-        });
-    }
-
-    /**
-     * Применяет тему оформления, выбранную пользователем в настройках.
-     * Темы: Light, Dark, Special.
-     */
-    private void applySelectedTheme() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String theme = prefs.getString("theme", "Light");
-
-        switch (theme) {
-            case "Light":
-                setTheme(R.style.Theme_KursovayaTesty_Light); // Светлая тема
-                break;
-            case "Dark":
-                setTheme(R.style.Theme_KursovayaTesty_Dark);  // Тёмная тема
-                break;
-            case "Special":
-                setTheme(R.style.Theme_KursovayaTesty_Special); // Особая тема
-                break;
+        findViewById<View>(R.id.buttonSettings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 
-    /**
-     * Применяет язык интерфейса, выбранный пользователем в настройках.
-     * Доступные языки: English и Русский.
-     */
-    private void applyLanguage() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String language = prefs.getString("language", "English");
+    private fun applySelectedTheme() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val theme = prefs.getString("theme", "Light")!!
 
-        // Определение кода локали в зависимости от языка
-        String localeCode = language.equals("Русский") ? "ru" : "en";
+        when (theme) {
+            "Light" -> setTheme(R.style.Theme_KursovayaTesty_Light)
+            "Dark" -> setTheme(R.style.Theme_KursovayaTesty_Dark)
+            "Special" -> setTheme(R.style.Theme_KursovayaTesty_Special)
+        }
+    }
 
-        Locale locale = new Locale(localeCode);
-        Locale.setDefault(locale);
+    private fun applyLanguage() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val language = prefs.getString("language", "English")!!
+        val localeCode = if (language == "Русский") "ru" else "en"
+        val locale = Locale(localeCode)
+        Locale.setDefault(locale)
 
-        // Применение новой локали
-        Configuration config = getResources().getConfiguration();
-        config.setLocale(locale);
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }

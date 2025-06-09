@@ -1,160 +1,165 @@
-package com.example.kursovayatesty;
+package com.example.kursovayatesty
+
+import android.content.Intent
+import android.os.Bundle
+import android.text.TextUtils
+import android.view.MenuItem
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import java.util.Locale
 
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.net.Uri;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.widget.*;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.bumptech.glide.Glide;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.*;
-
-import java.util.Locale;
-
-public class AccountSettingsActivity extends AppCompatActivity {
-
-    private EditText newEmailEditText, newPasswordEditText;
-    private Button updateEmailButton, updatePasswordButton, logoutButton;
-    private FirebaseAuth mAuth;
-    private FirebaseUser currentUser;
+class AccountSettingsActivity : AppCompatActivity() {
+    private var newEmailEditText: EditText? = null
+    private var newPasswordEditText: EditText? = null
+    private var updateEmailButton: Button? = null
+    private var updatePasswordButton: Button? = null
+    private var logoutButton: Button? = null
+    private var mAuth: FirebaseAuth? = null
+    private var currentUser: FirebaseUser? = null
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        applyLanguage();
-        applySelectedTheme();
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_account_settings);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        applyLanguage()
+        applySelectedTheme()
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_account_settings)
 
-        mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser();
+        mAuth = FirebaseAuth.getInstance()
+        currentUser = mAuth!!.currentUser
 
-        // Если пользователь не авторизован — вернуться на LoginActivity
         if (currentUser == null) {
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return;
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
         }
 
 
-        // Инициализация элементов UI
-        newEmailEditText = findViewById(R.id.newEmailEditText);
-        newPasswordEditText = findViewById(R.id.newPasswordEditText);
-        updateEmailButton = findViewById(R.id.updateEmailButton);
-        updatePasswordButton = findViewById(R.id.updatePasswordButton);
-        logoutButton = findViewById(R.id.logoutButton);
+        newEmailEditText = findViewById(R.id.newEmailEditText)
+        newPasswordEditText = findViewById(R.id.newPasswordEditText)
+        updateEmailButton = findViewById(R.id.updateEmailButton)
+        updatePasswordButton = findViewById(R.id.updatePasswordButton)
+        logoutButton = findViewById(R.id.logoutButton)
 
 
-        setupBottomNav();
+        setupBottomNav()
 
-        // Смена email
-        updateEmailButton.setOnClickListener(v -> {
-            String newEmail = newEmailEditText.getText().toString().trim();
+        updateEmailButton?.setOnClickListener {
+            val newEmail = newEmailEditText?.text.toString().trim()
             if (TextUtils.isEmpty(newEmail)) {
-                Toast.makeText(this, "Введите новый email", Toast.LENGTH_SHORT).show();
-                return;
+                Toast.makeText(this, "Введите новый email", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+            currentUser!!.updateEmail(newEmail)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Email обновлён", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
 
-            currentUser.updateEmail(newEmail)
-                    .addOnSuccessListener(aVoid -> Toast.makeText(this, "Email обновлён", Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(e -> Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-        });
-
-        // Смена пароля
-        updatePasswordButton.setOnClickListener(v -> {
-            String newPassword = newPasswordEditText.getText().toString().trim();
+        updatePasswordButton?.setOnClickListener {
+            val newPassword = newPasswordEditText?.text.toString().trim()
             if (TextUtils.isEmpty(newPassword)) {
-                Toast.makeText(this, "Введите новый пароль", Toast.LENGTH_SHORT).show();
-                return;
+                Toast.makeText(this, "Введите новый пароль", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+            currentUser!!.updatePassword(newPassword)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Пароль обновлён", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
 
-            currentUser.updatePassword(newPassword)
-                    .addOnSuccessListener(aVoid -> Toast.makeText(this, "Пароль обновлён", Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(e -> Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-        });
-
-        // Выход из аккаунта
-        logoutButton.setOnClickListener(v -> {
-            mAuth.signOut();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-        });
+        logoutButton?.setOnClickListener(View.OnClickListener { v: View? ->
+            mAuth!!.signOut()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        })
     }
 
-    private void applySelectedTheme() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String theme = prefs.getString("theme", "Light");
+    private fun applySelectedTheme() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val theme = prefs.getString("theme", "Light")!!
 
-        switch (theme) {
-            case "Light":
-                setTheme(R.style.Theme_KursovayaTesty_Light);
-                break;
-            case "Dark":
-                setTheme(R.style.Theme_KursovayaTesty_Dark);
-                break;
-            case "Special":
-                setTheme(R.style.Theme_KursovayaTesty_Special);
-                break;
+        when (theme) {
+            "Light" -> setTheme(R.style.Theme_KursovayaTesty_Light)
+            "Dark" -> setTheme(R.style.Theme_KursovayaTesty_Dark)
+            "Special" -> setTheme(R.style.Theme_KursovayaTesty_Special)
         }
     }
 
-    /**
-     * Применяет язык интерфейса, выбранный пользователем.
-     */
-    private void applyLanguage() {
-        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
-        String language = prefs.getString("language", "English");
+    private fun applyLanguage() {
+        val prefs = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val language = prefs.getString("language", "English")!!
 
-        String localeCode = language.equals("Русский") ? "ru" : "en";
-        Locale locale = new Locale(localeCode);
-        Locale.setDefault(locale);
+        val localeCode = if (language == "Русский") "ru" else "en"
+        val locale = Locale(localeCode)
+        Locale.setDefault(locale)
 
-        Configuration config = getResources().getConfiguration();
-        config.setLocale(locale);
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 
-    private void setupBottomNav() {
-        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
-        nav.setSelectedItemId(R.id.nav_menu);
+    private fun setupBottomNav() {
+        val nav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        nav.selectedItemId = R.id.nav_menu
 
-        nav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-
+        nav.setOnItemSelectedListener { item: MenuItem ->
+            val id = item.itemId
             if (id == R.id.nav_test) {
-                startActivity(new Intent(this, TestListActivity.class));
-                finish();
-                return true;
+                startActivity(
+                    Intent(
+                        this,
+                        TestListActivity::class.java
+                    )
+                )
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_create) {
-                startActivity(new Intent(this, CreateTestActivity.class));
-                finish();
-                return true;
+                startActivity(
+                    Intent(
+                        this,
+                        CreateTestActivity::class.java
+                    )
+                )
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_menu) {
-                startActivity(new Intent(this, MenuActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, MenuActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_scan) {
-                startActivity(new Intent(this, ScanActivity.class));
-                finish();
-                return true;
+                startActivity(Intent(this, ScanActivity::class.java))
+                finish()
+                return@setOnItemSelectedListener true
             }
             if (id == R.id.nav_settings) {
-                startActivity(new Intent(this, SettingsActivity.class));
-                finish();
-                return true;
+                startActivity(
+                    Intent(
+                        this,
+                        SettingsActivity::class.java
+                    )
+                )
+                finish()
+                return@setOnItemSelectedListener true
             }
 
-            Toast.makeText(this, "платформа 9 3/4", Toast.LENGTH_SHORT).show();
-            return true;
-        });
+            Toast.makeText(this, "платформа 9 3/4", Toast.LENGTH_SHORT).show()
+            true
+        }
     }
 }

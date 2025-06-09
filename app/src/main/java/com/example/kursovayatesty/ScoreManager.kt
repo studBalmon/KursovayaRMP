@@ -1,22 +1,21 @@
-package com.example.kursovayatesty;
+package com.example.kursovayatesty
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Context
 
+object ScoreManager {
+    private const val PREF_NAME = "test_scores"
 
-public class ScoreManager {
-    private static final String PREF_NAME = "test_scores";
-
-    public static void saveBestScore(Context context, String testName, float percent) {
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        float prev = prefs.getFloat(testName, 0);
+    @JvmStatic
+    fun saveBestScore(context: Context, testName: String?, percent: Float) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prev = prefs.getFloat(testName, 0f)
         if (percent > prev) {
-            prefs.edit().putFloat(testName, percent).apply();
+            prefs.edit().putFloat(testName, percent).apply()
         }
     }
 
-    public static float getBestScore(Context context, String testName) {
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        return prefs.getFloat(testName, 0);
+    fun getBestScore(context: Context, testName: String?): Float {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getFloat(testName, 0f)
     }
 }

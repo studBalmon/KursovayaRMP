@@ -1,37 +1,15 @@
-package com.example.kursovayatesty;
+package com.example.kursovayatesty
 
-import java.io.Serializable;
-import java.util.List;
+import java.io.Serializable
 
-public class Test implements Serializable {
-    private String title;               // Название теста
-    private List<Question> questions;   // Список вопросов теста
+class Test : Serializable {
+    var title: String? = null
+    var questions: List<Question>? = null
 
-    // Пустой конструктор (нужен для Gson и сериализации)
-    public Test() {
-    }
+    constructor()
 
-    // Конструктор с параметрами
-    public Test(String title, List<Question> questions) {
-        this.title = title;
-        this.questions = questions;
-    }
-
-    // Геттеры
-    public String getTitle() {
-        return title;
-    }
-
-    public List<Question> getQuestions() {
-        return questions;
-    }
-
-    // Сеттеры
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setQuestions(List<Question> questions) {
-        this.questions = questions;
+    constructor(title: String?, questions: List<Question>?) {
+        this.title = title
+        this.questions = questions
     }
 }

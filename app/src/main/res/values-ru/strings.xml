@@ -39,5 +39,7 @@
     <string name="newPassword">Новый пароль</string>
     <string name="changePassword">Изменить пароль</string>
     <string name="exitFromAccount">Выйти из аккаунта</string>
-
+    <string name="menu">Меню</string>
+    <string name="createS">Создать</string>
+    <string name="test">Тесты</string>
 </resources>

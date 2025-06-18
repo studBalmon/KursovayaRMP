@@ -1,20 +1,25 @@
-package com.example.kursovayatesty
+package com.example.kursovayatesty.ui
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
 import android.widget.Button
 import android.widget.RadioGroup
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import com.example.kursovayatesty.R
+import com.example.kursovayatesty.ui.viewmodel.SettingsViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Locale
 
 class SettingsActivity : AppCompatActivity() {
-    private var languageRadioGroup: RadioGroup? = null
-    private var themeRadioGroup: RadioGroup? = null
-    private var saveButton: Button? = null
+    private lateinit var languageRadioGroup: RadioGroup
+    private lateinit var themeRadioGroup: RadioGroup
+    private lateinit var saveButton: Button
+
+    private val viewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         applyLanguage()
@@ -27,63 +32,48 @@ class SettingsActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.saveSettingsButton)
 
         setupBottomNav()
-        loadSettings()
 
-        saveButton?.setOnClickListener {
-            saveSettings()
-            Toast.makeText(this, "Настройки сохранены", Toast.LENGTH_SHORT).show()
-            finish()
+        viewModel.language.observe(this, Observer { lang ->
+            when (lang) {
+                "English" -> languageRadioGroup.check(R.id.rbEnglish)
+                "Русский" -> languageRadioGroup.check(R.id.rbRussian)
+            }
+        })
+
+        viewModel.theme.observe(this, Observer { theme ->
+            when (theme) {
+                "Light" -> themeRadioGroup.check(R.id.rbLight)
+                "Dark" -> themeRadioGroup.check(R.id.rbDark)
+                "Special" -> themeRadioGroup.check(R.id.rbSpecial)
+            }
+        })
+
+        viewModel.message.observe(this, Observer { msg ->
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            if (msg == "Настройки сохранены") {
+                val intent = Intent(this@SettingsActivity, SettingsActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                finish()
+                startActivity(intent)
+            }
+        })
+
+        viewModel.loadSettings()
+
+        saveButton.setOnClickListener {
+            val language = when (languageRadioGroup.checkedRadioButtonId) {
+                R.id.rbEnglish -> "English"
+                R.id.rbRussian -> "Русский"
+                else -> "English"
+            }
+            val theme = when (themeRadioGroup.checkedRadioButtonId) {
+                R.id.rbLight -> "Light"
+                R.id.rbDark -> "Dark"
+                R.id.rbSpecial -> "Special"
+                else -> "Light"
+            }
+            viewModel.saveSettings(language, theme)
         }
-    }
-
-    private fun loadSettings() {
-        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        val language = prefs.getString(KEY_LANGUAGE, "English")!!
-        val theme = prefs.getString(KEY_THEME, "Light")!!
-
-        if (language == "English") {
-            languageRadioGroup!!.check(R.id.rbEnglish)
-        } else if (language == "Русский") {
-            languageRadioGroup!!.check(R.id.rbRussian)
-        }
-
-        when (theme) {
-            "Light" -> themeRadioGroup!!.check(R.id.rbLight)
-            "Dark" -> themeRadioGroup!!.check(R.id.rbDark)
-            "Special" -> themeRadioGroup!!.check(R.id.rbSpecial)
-        }
-    }
-
-    private fun saveSettings() {
-        var language = "English"
-        var theme = "Light"
-
-        val selectedLangId = languageRadioGroup!!.checkedRadioButtonId
-        if (selectedLangId == R.id.rbEnglish) {
-            language = "English"
-        } else if (selectedLangId == R.id.rbRussian) {
-            language = "Русский"
-        }
-
-        val selectedThemeId = themeRadioGroup!!.checkedRadioButtonId
-        if (selectedThemeId == R.id.rbLight) {
-            theme = "Light"
-        } else if (selectedThemeId == R.id.rbDark) {
-            theme = "Dark"
-        } else if (selectedThemeId == R.id.rbSpecial) {
-            theme = "Special"
-        }
-
-        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        val editor = prefs.edit()
-        editor.putString(KEY_LANGUAGE, language)
-        editor.putString(KEY_THEME, theme)
-        editor.apply()
-
-        val intent = Intent(this@SettingsActivity, SettingsActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-        finish()
-        startActivity(intent)
     }
 
     private fun setupBottomNav() {
@@ -113,8 +103,6 @@ class SettingsActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_settings -> {
-                    startActivity(Intent(this, SettingsActivity::class.java))
-                    finish()
                     true
                 }
                 else -> true
@@ -147,8 +135,8 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val PREFS_NAME = "app_settings"
-        private const val KEY_LANGUAGE = "language"
-        private const val KEY_THEME = "theme"
+        const val PREFS_NAME = "app_settings"
+        const val KEY_LANGUAGE = "language"
+        const val KEY_THEME = "theme"
     }
 }

@@ -15,37 +15,37 @@
         android:theme="@style/Theme.KursovayaTesty"
         tools:targetApi="31">
         <activity
-            android:name=".AccountSettingsActivity"
+            android:name=".ui.AccountSettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".StatisticsActivity"
+            android:name=".ui.StatisticsActivity"
             android:exported="false" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ui.SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".ui.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".ShowQrActivity"
+            android:name=".ui.ShowQrActivity"
             android:exported="false" />
         <activity
-            android:name=".CreateTestActivity"
+            android:name=".ui.CreateTestActivity"
             android:exported="false" />
         <activity
-            android:name=".ScanActivity"
+            android:name=".ui.ScanActivity"
             android:exported="false" />
         <activity
-            android:name=".TakeTestActivity"
+            android:name=".ui.TakeTestActivity"
             android:exported="false" />
         <activity
-            android:name=".TestListActivity"
+            android:name=".ui.TestListActivity"
             android:exported="false" />
         <activity
-            android:name=".MenuActivity"
+            android:name=".ui.MenuActivity"
             android:exported="false" />
         <activity
-            android:name=".SplashActivity"
+            android:name=".ui.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.KursovayaTesty">
             <intent-filter>

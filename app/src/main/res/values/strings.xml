@@ -38,4 +38,7 @@
     <string name="newPassword">New password</string>
     <string name="changePassword">Change password</string>
     <string name="exitFromAccount">Exit from account</string>
+    <string name="menu">Menu</string>
+    <string name="createS">Create</string>
+    <string name="test">Tests</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.kursovayatesty
+package com.example.kursovayatesty.viewmodel
 
 import android.content.Context
 

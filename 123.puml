@@ -1,0 +1,473 @@
+@startuml
+scale 0.8
+
+package "com.example.kursovayatesty" {
+
+class TestListActivity {
+    - ListView? testsListView
+    - File? testsFolder
+    - ListView? cloudTestsListView
+    - FirebaseFirestore? db
+    + onCreate(Bundle): void
+    - loadTestFiles(): void
+    - setupBottomNav(): void
+    - loadCloudTests(): void
+    - applySelectedTheme(): void
+    - applyLanguage(): void
+    - showProgressBar(container: LinearLayout, fill: View, percent: Float): void
+}
+
+class TestListAdapter {
+    - List<String> items
+    + getCount(): int
+    + getItem(position: int): Object
+    + getItemId(position: int): long
+    + getView(position: int, convertView: View?, parent: ViewGroup): View
+    - tryLoadLocalProgress(fileName: String?, container: LinearLayout, fill: View): void
+}
+
+class CloudTestsAdapter {
+    - List<String> titles
+    - List<String?> contents
+    + getCount(): int
+    + getItem(position: int): Object
+    + getItemId(position: int): long
+    + getView(position: int, convertView: View?, parent: ViewGroup): View
+}
+
+TestListActivity --> TestListAdapter : uses
+TestListActivity --> CloudTestsAdapter : uses
+TestListActivity -[hidden]> AppCompatActivity
+TestListAdapter --> File
+TestListAdapter --> Intent
+TestListAdapter --> FirebaseFirestore
+TestListAdapter --> FirebaseAuth
+
+CloudTestsAdapter --> FirebaseFirestore
+CloudTestsAdapter --> FirebaseAuth
+
+}
+
+
+
+package com.example.kursovayatesty {
+
+  class Test {
+    - title: String
+    - questions: List<Question>
+    + Test()
+    + Test(title: String, questions: List<Question>)
+  }
+
+  interface Serializable
+
+  Test ..|> Serializable
+  Test --> "0..*" Question : contains
+}
+
+
+package com.example.kursovayatesty {
+
+  class TakeTestActivity extends AppCompatActivity {
+    - questionsLayout: LinearLayout
+    - submitButton: Button
+    - questions: List<Question>
+    - testTitle: String
+    + onCreate(savedInstanceState: Bundle): void
+    - loadTestFromFile(fileName: String?): void
+    - loadTestFromJson(json: String?): void
+    - displayQuestions(): void
+    - checkAnswers(): void
+    - setupBottomNav(): void
+    - applySelectedTheme(): void
+    - applyLanguage(): void
+  }
+
+  class Question {
+    - text: String
+    - options: List<String>
+    - correctIndex: int
+    - selectedAnswerIndex: int
+  }
+
+  class Test {
+    - title: String
+    - questions: List<Question>
+  }
+
+  class Gson
+  class Intent
+  class Toast
+  class File
+  class Bundle
+  class MenuItem
+  class BottomNavigationView
+  class LayoutInflater
+  class Locale
+  class StatisticsActivity
+  class TestListActivity
+  class CreateTestActivity
+  class MenuActivity
+  class ScanActivity
+  class SettingsActivity
+
+  TakeTestActivity --> Question : uses
+  TakeTestActivity --> Test : uses
+  TakeTestActivity --> Gson : parses JSON
+  TakeTestActivity --> Intent : creates and passes data
+  TakeTestActivity --> Toast : displays messages
+  TakeTestActivity --> File : reads test files
+  TakeTestActivity --> Bundle : onCreate param
+  TakeTestActivity --> MenuItem : bottom nav items
+  TakeTestActivity --> BottomNavigationView : navigation
+  TakeTestActivity --> LayoutInflater : inflates views
+  TakeTestActivity --> Locale : language support
+
+  TakeTestActivity --> StatisticsActivity : starts
+  TakeTestActivity --> TestListActivity : starts
+  TakeTestActivity --> CreateTestActivity : starts
+  TakeTestActivity --> MenuActivity : starts
+  TakeTestActivity --> ScanActivity : starts
+  TakeTestActivity --> SettingsActivity : starts
+}
+
+
+
+package com.example.kursovayatesty {
+
+  class StatisticsActivity extends AppCompatActivity {
+    + onCreate(savedInstanceState: Bundle): void
+    - applySelectedTheme(): void
+    - applyLanguage(): void
+  }
+
+  class Intent
+  class Button
+  class TextView
+  class PieChart
+  class PieEntry
+  class PieDataSet
+  class PieData
+  class FirebaseAuth
+  class FirebaseFirestore
+  class DocumentSnapshot
+  class Locale
+  class Collections
+
+  StatisticsActivity --> Intent : creates
+  StatisticsActivity --> Button : uses
+  StatisticsActivity --> TextView : uses
+  StatisticsActivity --> PieChart : uses
+  StatisticsActivity --> PieEntry : uses
+  StatisticsActivity --> PieDataSet : uses
+  StatisticsActivity --> PieData : uses
+  StatisticsActivity --> FirebaseAuth : uses
+  StatisticsActivity --> FirebaseFirestore : uses
+  StatisticsActivity --> DocumentSnapshot : uses
+  StatisticsActivity --> Locale : uses
+  StatisticsActivity --> Collections : uses
+  StatisticsActivity --> ScoreManager : calls saveBestScore()
+
+}
+
+
+package com.example.kursovayatesty {
+
+  class SplashActivity extends AppCompatActivity {
+    + onCreate(savedInstanceState: Bundle): void
+  }
+
+  class Intent
+  class Handler
+  class Looper
+  class ImageView
+  class Glide
+
+  SplashActivity --> Intent : creates
+  SplashActivity --> Handler : uses
+  SplashActivity --> Looper : uses
+  SplashActivity --> ImageView : uses
+  SplashActivity --> Glide : uses
+}
+
+
+package com.example.kursovayatesty {
+
+  class ShowQrActivity extends AppCompatActivity {
+    + onCreate(savedInstanceState: Bundle): void
+    - toBitmap(matrix: BitMatrix): Bitmap
+  }
+
+  class QRCodeWriter
+  class BitMatrix
+  class Bitmap
+
+  ShowQrActivity --> QRCodeWriter : uses
+  ShowQrActivity --> BitMatrix : uses
+  ShowQrActivity --> Bitmap : returns
+}
+
+
+package com.example.kursovayatesty {
+
+  class SettingsActivity extends AppCompatActivity {
+    - languageRadioGroup: RadioGroup
+    - themeRadioGroup: RadioGroup
+    - saveButton: Button
+    + onCreate(savedInstanceState: Bundle): void
+    - loadSettings(): void
+    - saveSettings(): void
+    - setupBottomNav(): void
+    - applySelectedTheme(): void
+    - applyLanguage(): void
+
+    .. companion object ..
+    + PREFS_NAME: String = "app_settings"
+    + KEY_LANGUAGE: String = "language"
+    + KEY_THEME: String = "theme"
+  }
+}
+
+
+package com.example.kursovayatesty {
+
+  class ScoreManager << (O,#FF7700) Singleton >> {
+    - PREF_NAME: String = "test_scores"
+    + saveBestScore(context: Context, testName: String?, percent: Float): void
+    + getBestScore(context: Context, testName: String?): Float
+  }
+}
+
+
+package com.example.kursovayatesty {
+
+  class ScanActivity {
+    + onCreate(savedInstanceState: Bundle)
+    + onActivityResult(requestCode: int, resultCode: int, data: Intent?)
+    - saveTestToFile(content: String)
+  }
+}
+
+ScanActivity ..|> AppCompatActivity
+
+note right of ScanActivity::onCreate
+  - Инициализация сканера QR-кодов
+  - Prompt и настройки звука и ориентации
+end note
+
+note right of ScanActivity::onActivityResult
+  - Обработка результата сканирования
+  - Если есть данные — сохранить в файл
+  - Иначе показать тост и завершить активити
+end note
+
+note right of ScanActivity::saveTestToFile
+  - Парсинг JSON
+  - Сохранение в файл
+  - Обработка ошибок JSON и IO
+end note
+
+
+
+package com.example.kursovayatesty {
+
+  class Question {
+    - text: String
+    - options: List<String>
+    - correctIndex: int
+    - selectedAnswerIndex: int <<transient>>
+
+    + Question()
+    + Question(text: String, options: List<String>, correctIndex: int)
+  }
+}
+
+' Имплементация интерфейса
+interface Serializable
+
+Question ..|> Serializable
+
+
+
+package com.example.kursovayatesty {
+
+  class MenuActivity {
+    + onCreate(savedInstanceState: Bundle): void
+    - applySelectedTheme(): void
+    - applyLanguage(): void
+  }
+}
+
+' Внешние классы из Android
+class AppCompatActivity
+class Intent
+class Bundle
+class View
+class Locale
+
+' Наследование
+MenuActivity --|> AppCompatActivity
+
+' Зависимости/использование
+MenuActivity ..> Intent
+MenuActivity ..> Bundle
+MenuActivity ..> View
+MenuActivity ..> Locale
+
+
+
+package com.example.kursovayatesty {
+
+  class LoginActivity {
+    - emailEditText: EditText
+    - passwordEditText: EditText
+    - mAuth: FirebaseAuth
+
+    + onCreate(savedInstanceState: Bundle): void
+    - login(): void
+    - register(): void
+    - setupBottomNav(): void
+    - applySelectedTheme(): void
+    - applyLanguage(): void
+  }
+}
+
+' Внешние классы из Android, Firebase, Google
+class AppCompatActivity
+class EditText
+class Button
+class Intent
+class Bundle
+class Toast
+class MenuItem
+class BottomNavigationView
+class FirebaseAuth
+class Task
+class AuthResult
+class Locale
+
+' Наследование
+LoginActivity --|> AppCompatActivity
+
+' Зависимости/использование
+LoginActivity ..> EditText
+LoginActivity ..> Button
+LoginActivity ..> Intent
+LoginActivity ..> Bundle
+LoginActivity ..> Toast
+LoginActivity ..> MenuItem
+LoginActivity ..> BottomNavigationView
+LoginActivity ..> FirebaseAuth
+LoginActivity ..> Task
+LoginActivity ..> AuthResult
+LoginActivity ..> Locale
+
+
+
+package com.example.kursovayatesty {
+
+  class CreateTestActivity {
+    - testTitleEditText: EditText
+    - questionsContainer: LinearLayout
+    - questionViews: MutableList<View>
+    - testsFolder: File
+
+    + onCreate(savedInstanceState: Bundle): void
+    - addQuestionView(): void
+    - saveTestToFile(): void
+    - setupBottomNav(): void
+    - saveTestToCloud(title: String, questionList: List<Question>): void
+    - collectQuestions(): List<Question>
+    - applySelectedTheme(): void
+    - applyLanguage(): void
+    - getTestTitle(): String
+  }
+}
+
+' Внешние классы из Android, Firebase, Gson, Java
+class AppCompatActivity
+class EditText
+class LinearLayout
+class View
+class Button
+class File
+class Bundle
+class Intent
+class Toast
+class MenuItem
+class RadioButton
+class RadioGroup
+class FirebaseAuth
+class FirebaseFirestore
+class Gson
+class Locale
+
+' Наследование
+CreateTestActivity --|> AppCompatActivity
+
+' Зависимости / ассоциации
+CreateTestActivity ..> EditText
+CreateTestActivity ..> LinearLayout
+CreateTestActivity ..> View
+CreateTestActivity ..> Button
+CreateTestActivity ..> File
+CreateTestActivity ..> Bundle
+CreateTestActivity ..> Intent
+CreateTestActivity ..> Toast
+CreateTestActivity ..> MenuItem
+CreateTestActivity ..> RadioButton
+CreateTestActivity ..> RadioGroup
+CreateTestActivity ..> FirebaseAuth
+CreateTestActivity ..> FirebaseFirestore
+CreateTestActivity ..> Gson
+CreateTestActivity ..> Locale
+
+
+
+package com.example.kursovayatesty {
+
+  class AccountSettingsActivity {
+    - newEmailEditText: EditText
+    - newPasswordEditText: EditText
+    - updateEmailButton: Button
+    - updatePasswordButton: Button
+    - logoutButton: Button
+    - mAuth: FirebaseAuth
+    - currentUser: FirebaseUser
+
+    + onCreate(savedInstanceState: Bundle): void
+    - applySelectedTheme(): void
+    - applyLanguage(): void
+    - setupBottomNav(): void
+  }
+
+}
+
+' Внешние классы (из Android и Firebase)
+class AppCompatActivity
+class EditText
+class Button
+class FirebaseAuth
+class FirebaseUser
+class Intent
+class Bundle
+class View
+class Toast
+class MenuItem
+class BottomNavigationView
+
+' Наследование
+AccountSettingsActivity --|> AppCompatActivity
+
+' Ассоциации / зависимости
+AccountSettingsActivity ..> EditText
+AccountSettingsActivity ..> Button
+AccountSettingsActivity ..> FirebaseAuth
+AccountSettingsActivity ..> FirebaseUser
+AccountSettingsActivity ..> Intent
+AccountSettingsActivity ..> Bundle
+AccountSettingsActivity ..> View
+AccountSettingsActivity ..> Toast
+AccountSettingsActivity ..> MenuItem
+AccountSettingsActivity ..> BottomNavigationView
+@enduml

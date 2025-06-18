@@ -1,35 +1,32 @@
-package com.example.kursovayatesty
+package com.example.kursovayatesty.ui
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.tasks.Task
+import androidx.lifecycle.Observer
+import com.example.kursovayatesty.R
+import com.example.kursovayatesty.viewmodel.LoginViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseAuth
 import java.util.Locale
 
 class LoginActivity : AppCompatActivity() {
-    private var emailEditText: EditText? = null
-    private var passwordEditText: EditText? = null
-    private var mAuth: FirebaseAuth? = null
+
+    private lateinit var emailEditText: EditText
+    private lateinit var passwordEditText: EditText
+    private val loginViewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         applyLanguage()
         applySelectedTheme()
         super.onCreate(savedInstanceState)
 
-        mAuth = FirebaseAuth.getInstance()
-
-        if (mAuth!!.currentUser != null) {
-            val intent = Intent(this, AccountSettingsActivity::class.java)
-            startActivity(intent)
-            finish()
+        if (loginViewModel.checkUserLoggedIn()) {
+            navigateToAccountSettings()
             return
         }
 
@@ -40,57 +37,39 @@ class LoginActivity : AppCompatActivity() {
         val loginButton = findViewById<Button>(R.id.loginButton)
         val registerButton = findViewById<Button>(R.id.registerButton)
 
-        loginButton.setOnClickListener { login() }
-        registerButton.setOnClickListener { register() }
+        loginButton.setOnClickListener {
+            loginViewModel.login(emailEditText.text.toString(), passwordEditText.text.toString())
+        }
 
+        registerButton.setOnClickListener {
+            loginViewModel.register(emailEditText.text.toString(), passwordEditText.text.toString())
+        }
+
+        setupObservers()
         setupBottomNav()
     }
 
-    private fun login() {
-        val email = emailEditText!!.text.toString().trim { it <= ' ' }
-        val pass = passwordEditText!!.text.toString().trim { it <= ' ' }
-
-        if (email.isEmpty() || pass.isEmpty()) {
-            Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        mAuth!!.signInWithEmailAndPassword(email, pass)
-            .addOnCompleteListener(this) { task: Task<AuthResult?> ->
-                if (task.isSuccessful) {
-                    startActivity(Intent(this, AccountSettingsActivity::class.java))
-                    finish()
-                } else {
-                    Toast.makeText(
-                        this,
-                        "Ошибка входа: " + task.exception!!.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+    private fun setupObservers() {
+        loginViewModel.loginResult.observe(this, Observer { result ->
+            if (result.success) {
+                navigateToAccountSettings()
+            } else {
+                Toast.makeText(this, "Ошибка входа: ${result.errorMessage ?: "Неизвестная ошибка"}", Toast.LENGTH_SHORT).show()
             }
+        })
+
+        loginViewModel.registerResult.observe(this, Observer { result ->
+            if (result.success) {
+                Toast.makeText(this, "Регистрация прошла успешно", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Ошибка регистрации: ${result.errorMessage ?: "Неизвестная ошибка"}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
-    private fun register() {
-        val email = emailEditText!!.text.toString().trim { it <= ' ' }
-        val pass = passwordEditText!!.text.toString().trim { it <= ' ' }
-
-        if (email.isEmpty() || pass.isEmpty()) {
-            Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        mAuth!!.createUserWithEmailAndPassword(email, pass)
-            .addOnCompleteListener(this) { task: Task<AuthResult?> ->
-                if (task.isSuccessful) {
-                    Toast.makeText(this, "Регистрация прошла успешно", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(
-                        this,
-                        "Ошибка регистрации: " + task.exception!!.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
+    private fun navigateToAccountSettings() {
+        startActivity(Intent(this, AccountSettingsActivity::class.java))
+        finish()
     }
 
     private fun setupBottomNav() {

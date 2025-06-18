@@ -1,33 +1,34 @@
-package com.example.kursovayatesty
+package com.example.kursovayatesty.ui
 
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import com.example.kursovayatesty.R
+import com.example.kursovayatesty.viewmodel.TakeTestViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.gson.Gson
-import java.io.File
-import java.nio.file.Files
+import android.view.MenuItem
 import java.util.Locale
 
 class TakeTestActivity : AppCompatActivity() {
-    private var questionsLayout: LinearLayout? = null
-    private var submitButton: Button? = null
-    private var questions: List<Question> = ArrayList()
-    private var testTitle: String? = null
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    private lateinit var questionsLayout: LinearLayout
+    private lateinit var submitButton: Button
+
+    private val viewModel: TakeTestViewModel by viewModels()
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         applyLanguage()
         applySelectedTheme()
@@ -40,98 +41,74 @@ class TakeTestActivity : AppCompatActivity() {
         if (intent.hasExtra("test_content")) {
             val json = intent.getStringExtra("test_content")
             Log.d("TakeTestActivity", "Loaded test from cloud/json: $json")
-            loadTestFromJson(json)
+            viewModel.loadTestFromJson(json)
         } else if (intent.hasExtra("test_file_name")) {
             val fileName = intent.getStringExtra("test_file_name")
-            loadTestFromFile(fileName)
+            viewModel.loadTestFromFile(fileName)
         } else {
             Toast.makeText(this, "Источник теста не найден", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
-        submitButton?.setOnClickListener { checkAnswers() }
+        submitButton.setOnClickListener {
+            when (val result = viewModel.checkAnswers()) {
+                is TakeTestViewModel.Result.Unanswered -> Toast.makeText(this, "Ответьте на все вопросы", Toast.LENGTH_SHORT).show()
+                is TakeTestViewModel.Result.Success -> {
+                    val intent = Intent(this, StatisticsActivity::class.java)
+                    intent.putExtra("correct", result.correct)
+                    intent.putExtra("total", result.total)
+                    intent.putExtra("testName", viewModel.testTitle.value)
+                    startActivity(intent)
+                    finish()
+                }
+                is TakeTestViewModel.Result.Error -> Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        viewModel.questions.observe(this, Observer { questions ->
+            displayQuestions(questions)
+        })
+
+        viewModel.error.observe(this, Observer { errorMsg ->
+            errorMsg?.let {
+                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+                viewModel.clearError()
+            }
+        })
 
         setupBottomNav()
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private fun loadTestFromFile(fileName: String?) {
-        try {
-            val file = File(filesDir, "Tests/$fileName")
-            val content = String(Files.readAllBytes(file.toPath()))
-            loadTestFromJson(content)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Ошибка загрузки файла", Toast.LENGTH_SHORT).show()
-            e.printStackTrace()
-        }
-    }
-
-    private fun loadTestFromJson(json: String?) {
-        try {
-            val gson = Gson()
-            val test = gson.fromJson(json, Test::class.java)
-            this.testTitle = test.title
-            this.questions = test.questions!!
-            displayQuestions()
-        } catch (e: Exception) {
-            Toast.makeText(this, "Ошибка разбора теста", Toast.LENGTH_SHORT).show()
-            e.printStackTrace()
-        }
-    }
-
-    private fun displayQuestions() {
+    private fun displayQuestions(questions: List<com.example.kursovayatesty.model.Question>) {
         val inflater = LayoutInflater.from(this)
-        questionsLayout!!.removeAllViews()
+        questionsLayout.removeAllViews()
 
-        for (i in questions.indices) {
-            val q = questions[i]
+        for ((i, q) in questions.withIndex()) {
             val view = inflater.inflate(R.layout.item_question_take, null)
 
             val questionText = view.findViewById<TextView>(R.id.questionText)
             val radioGroup = view.findViewById<RadioGroup>(R.id.answersGroup)
 
-            questionText.text = (i + 1).toString() + ". " + q.text
+            questionText.text = "${i + 1}. ${q.text}"
 
-            for (j in q.options!!.indices) {
+            radioGroup.removeAllViews()
+            for ((j, option) in q.options.withIndex()) {
                 val rb = RadioButton(this)
-                rb.text = q.options!![j]
+                rb.text = option
                 rb.id = j
                 radioGroup.addView(rb)
             }
+            if (q.selectedAnswerIndex != -1) {
+                radioGroup.check(q.selectedAnswerIndex)
+            }
 
-            val finalI = i
             radioGroup.setOnCheckedChangeListener { _, checkedId ->
-                questions[finalI].selectedAnswerIndex = checkedId
+                viewModel.selectAnswer(i, checkedId)
             }
 
-            questionsLayout!!.addView(view)
+            questionsLayout.addView(view)
         }
-    }
-
-    private fun checkAnswers() {
-        var correct = 0
-        var unanswered = 0
-
-        for (q in questions) {
-            if (q.selectedAnswerIndex == -1) {
-                unanswered++
-            } else if (q.selectedAnswerIndex == q.correctIndex) {
-                correct++
-            }
-        }
-
-        if (unanswered > 0) {
-            Toast.makeText(this, "Ответьте на все вопросы", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val intent = Intent(this, StatisticsActivity::class.java)
-        intent.putExtra("correct", correct)
-        intent.putExtra("testName", testTitle)
-        intent.putExtra("total", questions.size)
-        startActivity(intent)
-        finish()
     }
 
     private fun setupBottomNav() {
